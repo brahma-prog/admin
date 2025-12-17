@@ -68,3 +68,43 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 ### `npm run build` fails to minify
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+
+# QuickMed Admin Portal
+
+A comprehensive admin portal for managing the QuickMed healthcare platform, built with React.
+
+## Features
+
+- **Complete Authentication System** with role-based access control
+- **8 Admin Modules** covering all functional requirements:
+  - User Management
+  - Doctor Management
+  - Pharmacy Management
+  - Delivery Partner Management
+  - Order Management
+  - Payment & Settlements
+  - Compliance & Audit
+  - Role & Content Management
+- **Responsive Design** for all screen sizes
+- **Interactive Dashboard** with charts and statistics
+- **Professional UI** with custom color palette
+
+## Tech Stack
+
+- **React 18** with functional components and hooks
+- **React Router 6** for navigation
+- **Recharts** for data visualization
+- **React Icons** for iconography
+- **Date-fns** for date manipulation
+- **Axios** for API calls
+- **CSS Modules** for styling
+
+## Color Palette
+
+```css
+Primary: #009688
+Mint: #4DB6AC
+Soft Background: #E0F2F1
+White: #FFFFFF
+Dark Text: #124441
+Soft Text: #4F6F6B

@@ -1,0 +1,265 @@
+.sidebar {
+  width: 260px;
+  background: var(--white);
+  border-right: 1px solid var(--gray);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  transition: width 0.3s ease;
+}
+
+.sidebar-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--gray);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.logo {
+  color: var(--primary);
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.logo-subtitle {
+  color: var(--softtext);
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 1rem 0;
+  overflow-y: auto;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.5rem;
+  color: var(--softtext);
+  text-decoration: none;
+  transition: all 0.3s ease;
+  font-size: 0.875rem;
+  font-weight: 500;
+  position: relative;
+}
+
+.nav-link:hover {
+  background-color: var(--softbg);
+  color: var(--primary);
+}
+
+.nav-link.active {
+  background-color: var(--softbg);
+  color: var(--primary);
+  border-right: 3px solid var(--primary);
+}
+
+.nav-link.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--primary);
+}
+
+.nav-icon {
+  font-size: 1.25rem;
+  width: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.nav-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar-footer {
+  padding: 1rem;
+  border-top: 1px solid var(--gray);
+  background: var(--white);
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--gray);
+}
+
+.user-avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  background-color: var(--primary);
+  color: var(--white);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.875rem;
+  flex-shrink: 0;
+}
+
+.user-name {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--darktext);
+  margin: 0;
+}
+
+.user-role {
+  font-size: 0.75rem;
+  color: var(--softtext);
+  text-transform: capitalize;
+  margin: 0;
+}
+
+.logout-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.625rem;
+  background-color: transparent;
+  border: 1px solid var(--gray);
+  border-radius: 0.5rem;
+  color: var(--error);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.logout-btn:hover {
+  background-color: rgba(244, 67, 54, 0.1);
+  border-color: var(--error);
+}
+
+/* Collapsed Sidebar */
+.sidebar.collapsed {
+  width: 80px;
+}
+
+.sidebar.collapsed .logo span:not(.logo-icon),
+.sidebar.collapsed .logo-subtitle,
+.sidebar.collapsed .nav-label,
+.sidebar.collapsed .user-name,
+.sidebar.collapsed .user-role,
+.sidebar.collapsed .logout-btn span {
+  display: none;
+}
+
+.sidebar.collapsed .nav-link {
+  justify-content: center;
+  padding: 0.75rem;
+}
+
+.sidebar.collapsed .user-info {
+  justify-content: center;
+  padding: 0.5rem;
+}
+
+.sidebar.collapsed .logout-btn {
+  padding: 0.625rem;
+  justify-content: center;
+}
+
+@media (max-width: 1024px) {
+  .sidebar {
+    width: 80px;
+  }
+  
+  .logo span:not(.logo-icon),
+  .logo-subtitle,
+  .nav-label,
+  .user-name,
+  .user-role,
+  .logout-btn span {
+    display: none;
+  }
+  
+  .nav-link {
+    justify-content: center;
+    padding: 0.75rem;
+  }
+  
+  .user-info {
+    justify-content: center;
+    padding: 0.5rem;
+  }
+  
+  .logout-btn {
+    padding: 0.625rem;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: fixed;
+    bottom: 0;
+    top: auto;
+    flex-direction: row;
+    border-right: none;
+    border-top: 1px solid var(--gray);
+    z-index: 1000;
+  }
+  
+  .sidebar-header,
+  .user-info {
+    display: none;
+  }
+  
+  .sidebar-nav {
+    flex: 1;
+    display: flex;
+    padding: 0;
+    overflow-x: auto;
+  }
+  
+  .nav-link {
+    flex-direction: column;
+    flex: 1;
+    padding: 0.5rem;
+    min-width: 70px;
+    font-size: 0.75rem;
+  }
+  
+  .nav-icon {
+    font-size: 1.125rem;
+    margin-bottom: 0.25rem;
+  }
+  
+  .sidebar-footer {
+    padding: 0.5rem;
+    border-top: none;
+    border-left: 1px solid var(--gray);
+  }
+  
+  .logout-btn {
+    height: 100%;
+    padding: 0.5rem;
+  }
+}

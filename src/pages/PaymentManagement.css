@@ -1,0 +1,153 @@
+.payment-management {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.financial-summary {
+  margin-bottom: 16px;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-top: 16px;
+}
+
+.summary-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  border-radius: 8px;
+  background: var(--softbg);
+}
+
+.summary-item.revenue {
+  border-left: 4px solid var(--primary);
+}
+
+.summary-item.pending {
+  border-left: 4px solid var(--warning);
+}
+
+.summary-item.commission {
+  border-left: 4px solid var(--success);
+}
+
+.summary-item.refunds {
+  border-left: 4px solid var(--error);
+}
+
+.summary-item svg {
+  font-size: 32px;
+  color: var(--primary);
+}
+
+.summary-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--darktext);
+  margin-bottom: 4px;
+}
+
+.summary-label {
+  font-size: 14px;
+  color: var(--softtext);
+}
+
+.date-range {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.date-range .form-input {
+  width: 150px;
+}
+
+.reports-section {
+  margin-top: 24px;
+}
+
+.report-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.report-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: var(--softbg);
+  border-radius: 8px;
+}
+
+.payment-details-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.transaction-breakdown {
+  background: var(--softbg);
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.transaction-breakdown h5 {
+  margin: 0 0 16px 0;
+  color: var(--darktext);
+}
+
+.breakdown-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.breakdown-item.total {
+  font-weight: 700;
+  font-size: 18px;
+  margin-top: 8px;
+  border-bottom: none;
+  padding-top: 16px;
+  border-top: 2px solid var(--primary);
+}
+
+.settlement-actions {
+  display: flex;
+  gap: 12px;
+  padding-top: 24px;
+  border-top: 1px solid var(--gray);
+}
+
+.usage-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.usage-label {
+  font-size: 12px;
+  color: var(--softtext);
+}
+
+.usage-progress {
+  height: 6px;
+  background: var(--gray);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--primary);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
