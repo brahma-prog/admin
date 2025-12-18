@@ -15,11 +15,13 @@ import {
   HiTruck,
   HiBell,
   HiLockClosed,
-  HiOfficeBuilding
+  HiOfficeBuilding,
+  HiInformationCircle
 } from 'react-icons/hi';
 import Table from '../components/common/Table';
 import Modal from '../components/common/Modal';
 import SearchBar from '../components/common/SearchBar';
+// import Notification from '../components/common/Notification';
 import './ComplianceManagement.css';
 
 const ComplianceManagement = () => {
@@ -28,13 +30,20 @@ const ComplianceManagement = () => {
   const [selectedItem, setSelectedItem] = useState(null);
   const [modalType, setModalType] = useState('view');
   const [searchTerm, setSearchTerm] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
+  const [showNotification, setShowNotification] = useState(false);
+  const [notificationMessage, setNotificationMessage] = useState('');
+  const [notificationType, setNotificationType] = useState('success');
+  
   const [filters, setFilters] = useState({
     entityType: 'all',
     daysRange: 'all',
-    status: 'all'
+    status: 'all',
+    severity: 'all'
   });
-
-  const expiringDocuments = [
+  
+  // State for all data to allow updates
+  const [expiringDocuments, setExpiringDocuments] = useState([
     {
       id: 1,
       entity: 'Dr. Arjun Mehta',
@@ -47,7 +56,8 @@ const ComplianceManagement = () => {
       entityId: 'DOC-001',
       complianceScore: 95,
       lastAudit: '2024-01-15',
-      riskLevel: 'low'
+      riskLevel: 'low',
+      reminderSent: false
     },
     {
       id: 2,
@@ -61,7 +71,8 @@ const ComplianceManagement = () => {
       entityId: 'PH-001',
       complianceScore: 85,
       lastAudit: '2024-01-20',
-      riskLevel: 'medium'
+      riskLevel: 'medium',
+      reminderSent: false
     },
     {
       id: 3,
@@ -75,27 +86,14 @@ const ComplianceManagement = () => {
       entityId: 'RID-001',
       complianceScore: 90,
       lastAudit: '2024-01-05',
-      riskLevel: 'low'
-    },
+      riskLevel: 'low',
+      reminderSent: false
+    }
+  ]);
+
+  const [expiredDocuments, setExpiredDocuments] = useState([
     {
       id: 4,
-      entity: 'Dr. Priya Singh',
-      type: 'doctor',
-      document: 'Medical Registration',
-      documentId: 'MED-2020-54321',
-      expiryDate: '2024-03-05',
-      daysLeft: 41,
-      status: 'expiring_soon',
-      entityId: 'DOC-002',
-      complianceScore: 75,
-      lastAudit: '2024-01-10',
-      riskLevel: 'medium'
-    }
-  ];
-
-  const expiredDocuments = [
-    {
-      id: 5,
       entity: 'Dr. Sunita Reddy',
       type: 'doctor',
       document: 'Medical Registration',
@@ -103,15 +101,16 @@ const ComplianceManagement = () => {
       expiryDate: '2024-01-10',
       daysLeft: -14,
       status: 'expired',
-      entityId: 'DOC-003',
+      entityId: 'DOC-002',
       complianceScore: 60,
       lastAudit: '2023-12-20',
       riskLevel: 'high',
       actionsTaken: ['account_restricted', 'notification_sent'],
-      restrictionLevel: 'partial'
+      restrictionLevel: 'partial',
+      isRestricted: true
     },
     {
-      id: 6,
+      id: 5,
       entity: 'MedPlus Pharmacy',
       type: 'pharmacy',
       document: 'GST Registration',
@@ -124,27 +123,12 @@ const ComplianceManagement = () => {
       lastAudit: '2023-12-15',
       riskLevel: 'high',
       actionsTaken: ['account_suspended', 'fine_imposed'],
-      restrictionLevel: 'full'
-    },
-    {
-      id: 7,
-      entity: 'Quick Meds Pharmacy',
-      type: 'pharmacy',
-      document: 'Drug License',
-      documentId: 'DRUG-2019-002',
-      expiryDate: '2023-11-30',
-      daysLeft: -55,
-      status: 'expired',
-      entityId: 'PH-003',
-      complianceScore: 30,
-      lastAudit: '2023-11-15',
-      riskLevel: 'critical',
-      actionsTaken: ['account_suspended', 'legal_notice'],
-      restrictionLevel: 'full'
+      restrictionLevel: 'full',
+      isRestricted: true
     }
-  ];
+  ]);
 
-  const complianceViolations = [
+  const [complianceViolations, setComplianceViolations] = useState([
     {
       id: 1,
       entity: 'Dr. Rohan Sharma',
@@ -176,42 +160,10 @@ const ComplianceManagement = () => {
         { date: '2024-01-22', action: 'Reported by patient', user: 'Patient-123' },
         { date: '2024-01-23', action: 'Escalated to legal', user: 'Compliance-001' }
       ]
-    },
-    {
-      id: 3,
-      entity: 'Speedy Delivery',
-      type: 'rider',
-      violation: 'Temperature breach during delivery',
-      severity: 'high',
-      reported: '2024-01-24',
-      status: 'under_review',
-      violationId: 'VIOL-003',
-      category: 'operational',
-      impact: 'medication_safety',
-      auditTrail: [
-        { date: '2024-01-24', action: 'System detected', user: 'IoT Sensor' }
-      ]
-    },
-    {
-      id: 4,
-      entity: 'Dr. Neha Gupta',
-      type: 'doctor',
-      violation: 'Incomplete patient records',
-      severity: 'low',
-      reported: '2024-01-20',
-      status: 'resolved',
-      violationId: 'VIOL-004',
-      category: 'administrative',
-      impact: 'documentation',
-      auditTrail: [
-        { date: '2024-01-20', action: 'Reported', user: 'System' },
-        { date: '2024-01-21', action: 'Corrected', user: 'Dr. Neha Gupta' },
-        { date: '2024-01-22', action: 'Verified', user: 'Admin-002' }
-      ]
     }
-  ];
+  ]);
 
-  const auditLogs = [
+  const [auditLogs, setAuditLogs] = useState([
     {
       id: 1,
       admin: 'Super Admin',
@@ -221,13 +173,7 @@ const ComplianceManagement = () => {
       entityId: 'DOC-001',
       entityType: 'doctor',
       timestamp: '2024-01-24 14:30:45',
-      ip: '192.168.1.100',
-      sessionId: 'SESS-20240124-001',
-      changes: {
-        field: 'status',
-        from: 'pending',
-        to: 'approved'
-      }
+      ip: '192.168.1.100'
     },
     {
       id: 2,
@@ -238,12 +184,7 @@ const ComplianceManagement = () => {
       entityId: 'PH-001',
       entityType: 'pharmacy',
       timestamp: '2024-01-24 13:15:22',
-      ip: '192.168.1.101',
-      sessionId: 'SESS-20240124-002',
-      changes: {
-        amount: 15000,
-        transactionId: 'TXN-001234'
-      }
+      ip: '192.168.1.101'
     },
     {
       id: 3,
@@ -254,48 +195,11 @@ const ComplianceManagement = () => {
       entityId: 'ORD-00123',
       entityType: 'order',
       timestamp: '2024-01-24 12:45:10',
-      ip: '192.168.1.102',
-      sessionId: 'SESS-20240124-003',
-      changes: {
-        flagType: 'potential_violation',
-        reason: 'unusual_dosage'
-      }
-    },
-    {
-      id: 4,
-      admin: 'Legal Admin',
-      adminRole: 'legal_admin',
-      action: 'Updated compliance policy',
-      entity: 'Compliance Policy v2.1',
-      entityId: 'POL-2024-001',
-      entityType: 'policy',
-      timestamp: '2024-01-24 11:20:33',
-      ip: '192.168.1.103',
-      sessionId: 'SESS-20240124-004',
-      changes: {
-        version: '2.0 to 2.1',
-        sectionsUpdated: ['data_retention', 'audit_logs']
-      }
-    },
-    {
-      id: 5,
-      admin: 'Compliance Admin',
-      adminRole: 'compliance_admin',
-      action: 'Restricted platform access',
-      entity: 'MedPlus Pharmacy',
-      entityId: 'PH-002',
-      entityType: 'pharmacy',
-      timestamp: '2024-01-24 10:05:17',
-      ip: '192.168.1.102',
-      sessionId: 'SESS-20240124-005',
-      changes: {
-        restrictionType: 'full_suspension',
-        reason: 'expired_license'
-      }
+      ip: '192.168.1.102'
     }
-  ];
+  ]);
 
-  const renewalRequests = [
+  const [renewalRequests, setRenewalRequests] = useState([
     {
       id: 1,
       requestId: 'REN-001',
@@ -309,48 +213,34 @@ const ComplianceManagement = () => {
       priority: 'high',
       attachedFiles: 3,
       reviewNotes: 'Awaiting verification from medical council'
-    },
-    {
-      id: 2,
-      requestId: 'REN-002',
-      entity: 'MedPlus Pharmacy',
-      entityType: 'pharmacy',
-      document: 'GST Registration',
-      originalExpiry: '2023-12-31',
-      submittedDate: '2024-01-20',
-      submittedBy: 'Pharmacy Manager',
-      status: 'under_verification',
-      priority: 'high',
-      attachedFiles: 5,
-      reviewNotes: 'Documents under legal review'
     }
-  ];
+  ]);
 
-  const historicalRecords = [
-    {
-      id: 1,
-      entity: 'Dr. Arjun Mehta',
-      period: '2023',
-      complianceScore: 92,
-      violations: 1,
-      audits: 3,
-      status: 'compliant'
-    }
-  ];
+  // Show notification function
+  const showNotificationMessage = (message, type = 'success') => {
+    setNotificationMessage(message);
+    setNotificationType(type);
+    setShowNotification(true);
+    
+    // Auto hide after 3 seconds
+    setTimeout(() => {
+      setShowNotification(false);
+    }, 3000);
+  };
 
+  // Columns configuration
   const columns = {
     expiring: [
       { key: 'entity', label: 'Entity' },
       { key: 'type', label: 'Type' },
       { key: 'document', label: 'Document' },
-      { key: 'documentId', label: 'Document ID' },
       { key: 'expiryDate', label: 'Expiry Date' },
       { 
         key: 'daysLeft', 
         label: 'Days Left',
-        render: (days) => (
+        render: (days, item) => (
           <span className={`days-left ${days < 30 ? 'warning' : days < 0 ? 'expired' : 'normal'}`}>
-            {days} days
+            {days} days {item.reminderSent && <HiBell className="reminder-icon" title="Reminder sent" />}
           </span>
         )
       },
@@ -378,11 +268,11 @@ const ComplianceManagement = () => {
         render: (_, item) => (
           <div className="action-buttons">
             <button 
-              className="btn btn-sm btn-outline"
+              className={`btn btn-sm ${item.reminderSent ? 'btn-secondary' : 'btn-outline'}`}
               onClick={() => sendReminder(item)}
               title="Send reminder email"
             >
-              <HiBell /> Remind
+              <HiBell /> {item.reminderSent ? 'Re-send' : 'Remind'}
             </button>
             <button 
               className="btn btn-sm btn-warning"
@@ -390,13 +280,6 @@ const ComplianceManagement = () => {
               title="View document details"
             >
               <HiEye /> View
-            </button>
-            <button 
-              className="btn btn-sm btn-primary"
-              onClick={() => requestRenewal(item)}
-              title="Request document renewal"
-            >
-              <HiRefresh /> Renew
             </button>
           </div>
         )
@@ -406,7 +289,6 @@ const ComplianceManagement = () => {
       { key: 'entity', label: 'Entity' },
       { key: 'type', label: 'Type' },
       { key: 'document', label: 'Document' },
-      { key: 'documentId', label: 'Document ID' },
       { key: 'expiryDate', label: 'Expiry Date' },
       { 
         key: 'daysLeft', 
@@ -429,9 +311,9 @@ const ComplianceManagement = () => {
       { 
         key: 'status', 
         label: 'Status',
-        render: () => (
-          <span className="status-badge status-expired">
-            <HiExclamationCircle /> Expired
+        render: (_, item) => (
+          <span className={`status-badge status-${item.status} ${item.isRestricted ? 'restricted' : ''}`}>
+            {item.isRestricted ? 'Restricted' : 'Expired'}
           </span>
         )
       },
@@ -441,11 +323,11 @@ const ComplianceManagement = () => {
         render: (_, item) => (
           <div className="action-buttons">
             <button 
-              className="btn btn-sm btn-error"
-              onClick={() => restrictEntity(item)}
-              title="Restrict platform access"
+              className={`btn btn-sm ${item.isRestricted ? 'btn-success' : 'btn-error'}`}
+              onClick={() => toggleRestriction(item)}
+              title={item.isRestricted ? "Restore access" : "Restrict platform access"}
             >
-              <HiLockClosed /> Restrict
+              <HiLockClosed /> {item.isRestricted ? 'Restore' : 'Restrict'}
             </button>
             <button 
               className="btn btn-sm btn-outline"
@@ -453,13 +335,6 @@ const ComplianceManagement = () => {
               title="Request document renewal"
             >
               <HiRefresh /> Renew
-            </button>
-            <button 
-              className="btn-icon btn-sm"
-              onClick={() => viewDocument(item)}
-              title="View details"
-            >
-              <HiEye />
             </button>
           </div>
         )
@@ -494,25 +369,18 @@ const ComplianceManagement = () => {
         render: (_, violation) => (
           <div className="action-buttons">
             <button 
-              className="btn btn-sm btn-outline"
-              onClick={() => investigateViolation(violation)}
-              title="Investigate violation"
-            >
-              Investigate
-            </button>
-            <button 
               className="btn btn-sm btn-warning"
-              onClick={() => takeAction(violation)}
-              title="Take corrective action"
+              onClick={() => openViolationDetails(violation)}
+              title="View violation details"
             >
-              Take Action
+              <HiEye /> Details
             </button>
             <button 
-              className="btn-icon btn-sm"
-              onClick={() => viewAuditTrail(violation)}
-              title="View audit trail"
+              className="btn btn-sm btn-success"
+              onClick={() => resolveViolation(violation)}
+              title="Mark as resolved"
             >
-              <HiDocumentText />
+              <HiCheckCircle /> Resolve
             </button>
           </div>
         )
@@ -520,11 +388,9 @@ const ComplianceManagement = () => {
     ],
     audit: [
       { key: 'admin', label: 'Admin User' },
-      { key: 'adminRole', label: 'Role' },
       { key: 'action', label: 'Action' },
       { key: 'entity', label: 'Entity' },
       { key: 'timestamp', label: 'Timestamp' },
-      { key: 'ip', label: 'IP Address' },
       {
         key: 'actions',
         label: 'Actions',
@@ -536,13 +402,6 @@ const ComplianceManagement = () => {
               title="View audit details"
             >
               <HiEye />
-            </button>
-            <button 
-              className="btn-icon btn-sm"
-              onClick={() => exportLog(log)}
-              title="Export log"
-            >
-              <HiDownload />
             </button>
           </div>
         )
@@ -579,24 +438,17 @@ const ComplianceManagement = () => {
           <div className="action-buttons">
             <button 
               className="btn btn-sm btn-success"
-              onClick={() => approveRenewal(request)}
+              onClick={() => handleRenewalAction(request, 'approved')}
               title="Approve renewal"
             >
               <HiCheckCircle /> Approve
             </button>
             <button 
               className="btn btn-sm btn-error"
-              onClick={() => rejectRenewal(request)}
+              onClick={() => handleRenewalAction(request, 'rejected')}
               title="Reject renewal"
             >
               <HiXCircle /> Reject
-            </button>
-            <button 
-              className="btn-icon btn-sm"
-              onClick={() => viewRenewalDetails(request)}
-              title="View details"
-            >
-              <HiEye />
             </button>
           </div>
         )
@@ -604,9 +456,40 @@ const ComplianceManagement = () => {
     ]
   };
 
+  // Working Functions
+
   const sendReminder = (item) => {
-    console.log('Send reminder for:', item.entity);
-    alert(`Reminder sent to ${item.entity} about ${item.document} expiry in ${item.daysLeft} days`);
+    if (activeTab === 'expiring') {
+      setExpiringDocuments(prev => 
+        prev.map(doc => 
+          doc.id === item.id ? { ...doc, reminderSent: true } : doc
+        )
+      );
+    }
+    
+    // Add audit log
+    const newAuditLog = {
+      id: auditLogs.length + 1,
+      admin: 'Compliance Admin',
+      adminRole: 'compliance_admin',
+      action: 'Sent reminder for document expiry',
+      entity: item.entity,
+      entityId: item.entityId,
+      entityType: item.type,
+      timestamp: new Date().toLocaleString('en-US', { 
+        year: 'numeric', 
+        month: '2-digit', 
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      }),
+      ip: '192.168.1.104'
+    };
+    
+    setAuditLogs(prev => [newAuditLog, ...prev]);
+    
+    showNotificationMessage(`Reminder sent to ${item.entity} about ${item.document} expiry`, 'success');
   };
 
   const viewDocument = (item) => {
@@ -615,33 +498,151 @@ const ComplianceManagement = () => {
     setShowModal(true);
   };
 
-  const restrictEntity = (item) => {
-    if (window.confirm(`Restrict ${item.entity} due to expired ${item.document}? This will limit platform access.`)) {
-      console.log('Restrict entity:', item.entity);
-      alert(`${item.entity} has been restricted from platform activities`);
-    }
+  const toggleRestriction = (item) => {
+    const newStatus = !item.isRestricted;
+    const action = newStatus ? 'Restored' : 'Restricted';
+    
+    // Confirmation modal
+    setSelectedItem({
+      ...item,
+      action: action.toLowerCase(),
+      newStatus: newStatus
+    });
+    setModalType('confirm');
+    setShowModal(true);
+  };
+
+  const confirmRestriction = () => {
+    const item = selectedItem;
+    const action = item.action;
+    const newStatus = item.newStatus;
+    
+    setExpiredDocuments(prev => 
+      prev.map(doc => 
+        doc.id === item.id ? { ...doc, isRestricted: newStatus } : doc
+      )
+    );
+    
+    // Add audit log
+    const newAuditLog = {
+      id: auditLogs.length + 1,
+      admin: 'Compliance Admin',
+      adminRole: 'compliance_admin',
+      action: `${action.charAt(0).toUpperCase() + action.slice(1)} platform access`,
+      entity: item.entity,
+      entityId: item.entityId,
+      entityType: item.type,
+      timestamp: new Date().toLocaleString('en-US', { 
+        year: 'numeric', 
+        month: '2-digit', 
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      }),
+      ip: '192.168.1.105'
+    };
+    
+    setAuditLogs(prev => [newAuditLog, ...prev]);
+    
+    showNotificationMessage(`${item.entity} has been ${action} from platform activities`, 'success');
+    setShowModal(false);
+    setSelectedItem(null);
   };
 
   const requestRenewal = (item) => {
-    console.log('Request renewal for:', item.entity);
-    alert(`Renewal request sent to ${item.entity} for ${item.document}`);
+    const newRequest = {
+      id: renewalRequests.length + 1,
+      requestId: `REN-${String(renewalRequests.length + 1).padStart(3, '0')}`,
+      entity: item.entity,
+      entityType: item.type,
+      document: item.document,
+      originalExpiry: item.expiryDate,
+      submittedDate: new Date().toISOString().split('T')[0],
+      submittedBy: 'System Auto',
+      status: 'pending_review',
+      priority: item.daysLeft < 0 ? 'high' : 'medium',
+      attachedFiles: 0,
+      reviewNotes: 'Auto-generated renewal request'
+    };
+    
+    setRenewalRequests(prev => [newRequest, ...prev]);
+    
+    // Add audit log
+    const newAuditLog = {
+      id: auditLogs.length + 1,
+      admin: 'System',
+      adminRole: 'system',
+      action: 'Auto-generated renewal request',
+      entity: item.entity,
+      entityId: item.entityId,
+      entityType: item.type,
+      timestamp: new Date().toLocaleString('en-US', { 
+        year: 'numeric', 
+        month: '2-digit', 
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      }),
+      ip: '192.168.1.106'
+    };
+    
+    setAuditLogs(prev => [newAuditLog, ...prev]);
+    
+    setActiveTab('renewals');
+    showNotificationMessage(`Renewal request created for ${item.entity} - ${item.document}`, 'success');
   };
 
-  const investigateViolation = (violation) => {
+  const openViolationDetails = (violation) => {
     setSelectedItem(violation);
     setModalType('violation');
     setShowModal(true);
   };
 
-  const takeAction = (violation) => {
-    console.log('Take action on:', violation.entity);
-    alert(`Action taken on violation: ${violation.violation}`);
+  const resolveViolation = (violation) => {
+    setSelectedItem({
+      ...violation,
+      action: 'resolve'
+    });
+    setModalType('confirm');
+    setShowModal(true);
   };
 
-  const viewAuditTrail = (violation) => {
-    setSelectedItem(violation);
-    setModalType('auditTrail');
-    setShowModal(true);
+  const confirmResolveViolation = () => {
+    const violation = selectedItem;
+    
+    setComplianceViolations(prev => 
+      prev.map(viol => 
+        viol.id === violation.id ? { ...viol, status: 'resolved' } : viol
+      )
+    );
+    
+    // Add audit log
+    const newAuditLog = {
+      id: auditLogs.length + 1,
+      admin: 'Compliance Admin',
+      adminRole: 'compliance_admin',
+      action: 'Resolved compliance violation',
+      entity: violation.entity,
+      entityId: violation.violationId,
+      entityType: 'violation',
+      timestamp: new Date().toLocaleString('en-US', { 
+        year: 'numeric', 
+        month: '2-digit', 
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      }),
+      ip: '192.168.1.107'
+    };
+    
+    setAuditLogs(prev => [newAuditLog, ...prev]);
+    
+    showNotificationMessage(`Violation ${violation.violationId} has been resolved`, 'success');
+    setShowModal(false);
+    setSelectedItem(null);
   };
 
   const viewAuditDetails = (log) => {
@@ -650,47 +651,213 @@ const ComplianceManagement = () => {
     setShowModal(true);
   };
 
-  const exportLog = (log) => {
-    console.log('Export log:', log.id);
-    alert(`Exporting audit log for ${log.admin}`);
-  };
-
-  const approveRenewal = (request) => {
-    if (window.confirm(`Approve renewal request ${request.requestId} for ${request.entity}?`)) {
-      console.log('Approve renewal:', request.entity);
-      alert(`Renewal approved for ${request.entity}`);
-    }
-  };
-
-  const rejectRenewal = (request) => {
-    if (window.confirm(`Reject renewal request ${request.requestId} for ${request.entity}?`)) {
-      const reason = prompt('Enter rejection reason:');
-      if (reason) {
-        console.log('Reject renewal:', request.entity, 'Reason:', reason);
-        alert(`Renewal rejected for ${request.entity}`);
-      }
-    }
-  };
-
-  const viewRenewalDetails = (request) => {
-    setSelectedItem(request);
-    setModalType('renewal');
+  const handleRenewalAction = (request, action) => {
+    setSelectedItem({
+      ...request,
+      action: action
+    });
+    setModalType('confirm');
     setShowModal(true);
   };
 
+  const confirmRenewalAction = () => {
+    const request = selectedItem;
+    const action = request.action;
+    const actionText = action === 'approved' ? 'Approve' : 'Reject';
+    
+    setRenewalRequests(prev => 
+      prev.map(req => 
+        req.id === request.id ? { ...req, status: action === 'approved' ? 'approved' : 'rejected' } : req
+      )
+    );
+    
+    if (action === 'approved') {
+      const updatedDoc = expiredDocuments.find(doc => 
+        doc.entity === request.entity && doc.document === request.document
+      );
+      
+      if (updatedDoc) {
+        const newExpiryDate = new Date();
+        newExpiryDate.setFullYear(newExpiryDate.getFullYear() + 1);
+        const formattedDate = newExpiryDate.toISOString().split('T')[0];
+        
+        setExpiredDocuments(prev => prev.filter(doc => doc.id !== updatedDoc.id));
+        setExpiringDocuments(prev => [...prev, {
+          ...updatedDoc,
+          id: expiringDocuments.length + 1,
+          expiryDate: formattedDate,
+          daysLeft: 365,
+          status: 'expiring_soon',
+          isRestricted: false,
+          riskLevel: 'low'
+        }]);
+      }
+    }
+    
+    // Add audit log
+    const newAuditLog = {
+      id: auditLogs.length + 1,
+      admin: 'Compliance Admin',
+      adminRole: 'compliance_admin',
+      action: `${actionText}ed renewal request`,
+      entity: request.entity,
+      entityId: request.requestId,
+      entityType: request.entityType,
+      timestamp: new Date().toLocaleString('en-US', { 
+        year: 'numeric', 
+        month: '2-digit', 
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      }),
+      ip: '192.168.1.108'
+    };
+    
+    setAuditLogs(prev => [newAuditLog, ...prev]);
+    
+    showNotificationMessage(`Renewal request ${request.requestId} has been ${action}ed`, 'success');
+    setShowModal(false);
+    setSelectedItem(null);
+  };
+
   const generateComplianceReport = () => {
-    alert('Generating comprehensive compliance report...');
+    // Create report data
+    const reportData = {
+      generatedAt: new Date().toISOString(),
+      reportId: `REP-${Date.now()}`,
+      summary: {
+        totalEntities: expiringDocuments.length + expiredDocuments.length,
+        expiringSoon: expiringDocuments.length,
+        expired: expiredDocuments.length,
+        activeViolations: complianceViolations.filter(v => v.status !== 'resolved').length,
+        pendingRenewals: renewalRequests.filter(r => r.status === 'pending_review').length
+      },
+      expiringDocuments: expiringDocuments,
+      expiredDocuments: expiredDocuments,
+      complianceViolations: complianceViolations,
+      renewalRequests: renewalRequests
+    };
+    
+    // Create downloadable report
+    const reportContent = `Compliance Report - ${new Date().toLocaleDateString()}\n\n` +
+      `========================================\n` +
+      `SUMMARY\n` +
+      `========================================\n` +
+      `Total Entities: ${reportData.summary.totalEntities}\n` +
+      `Expiring Soon: ${reportData.summary.expiringSoon}\n` +
+      `Expired: ${reportData.summary.expired}\n` +
+      `Active Violations: ${reportData.summary.activeViolations}\n` +
+      `Pending Renewals: ${reportData.summary.pendingRenewals}\n\n` +
+      `========================================\n` +
+      `DETAILED DATA\n` +
+      `========================================\n\n` +
+      `Expiring Documents (${expiringDocuments.length}):\n` +
+      expiringDocuments.map(doc => 
+        `  • ${doc.entity} - ${doc.document} (Expires: ${doc.expiryDate}, Days Left: ${doc.daysLeft})`
+      ).join('\n') + '\n\n' +
+      `Expired Documents (${expiredDocuments.length}):\n` +
+      expiredDocuments.map(doc => 
+        `  • ${doc.entity} - ${doc.document} (Expired: ${doc.expiryDate}, Overdue: ${Math.abs(doc.daysLeft)} days)`
+      ).join('\n');
+    
+    const blob = new Blob([reportContent], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `compliance-report-${new Date().toISOString().split('T')[0]}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    // Add audit log
+    const newAuditLog = {
+      id: auditLogs.length + 1,
+      admin: 'Compliance Admin',
+      adminRole: 'compliance_admin',
+      action: 'Generated compliance report',
+      entity: 'System Report',
+      entityId: reportData.reportId,
+      entityType: 'report',
+      timestamp: new Date().toLocaleString('en-US', { 
+        year: 'numeric', 
+        month: '2-digit', 
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      }),
+      ip: '192.168.1.109'
+    };
+    
+    setAuditLogs(prev => [newAuditLog, ...prev]);
+    
+    showNotificationMessage('Compliance report generated and downloaded successfully!', 'success');
   };
 
   const enforceDataRetention = () => {
-    if (window.confirm('Enforce data retention policies? This will archive records older than retention period.')) {
-      alert('Data retention policies enforced');
-    }
+    // Add audit log
+    const newAuditLog = {
+      id: auditLogs.length + 1,
+      admin: 'System Admin',
+      adminRole: 'system_admin',
+      action: 'Enforced data retention policies',
+      entity: 'All Compliance Records',
+      entityId: 'RETENTION-001',
+      entityType: 'system',
+      timestamp: new Date().toLocaleString('en-US', { 
+        year: 'numeric', 
+        month: '2-digit', 
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      }),
+      ip: '192.168.1.110'
+    };
+    
+    setAuditLogs(prev => [newAuditLog, ...prev]);
+    
+    showNotificationMessage('Data retention policies enforced successfully. Records older than 7 years have been archived.', 'info');
   };
 
-  const flagHighRiskViolation = (violation) => {
-    console.log('Flag high-risk violation:', violation);
-    alert(`High-risk violation flagged: ${violation.violation}`);
+  const flagHighRiskViolation = () => {
+    showNotificationMessage('High-risk case has been flagged for immediate attention', 'warning');
+  };
+
+  const applyFilters = (data) => {
+    let filteredData = [...data];
+    
+    if (filters.entityType !== 'all') {
+      filteredData = filteredData.filter(item => item.type === filters.entityType);
+    }
+    
+    if (filters.status !== 'all') {
+      filteredData = filteredData.filter(item => item.status === filters.status);
+    }
+    
+    if (activeTab === 'violations' && filters.severity !== 'all') {
+      filteredData = filteredData.filter(item => item.severity === filters.severity);
+    }
+    
+    if (activeTab === 'expiring' || activeTab === 'expired') {
+      if (filters.daysRange === 'critical') {
+        filteredData = filteredData.filter(item => Math.abs(item.daysLeft) <= 7);
+      } else if (filters.daysRange === 'warning') {
+        filteredData = filteredData.filter(item => Math.abs(item.daysLeft) > 7 && Math.abs(item.daysLeft) <= 30);
+      }
+    }
+    
+    if (searchTerm) {
+      filteredData = filteredData.filter(item => 
+        Object.values(item).some(val => 
+          String(val).toLowerCase().includes(searchTerm.toLowerCase())
+        )
+      );
+    }
+    
+    return filteredData;
   };
 
   const getCurrentData = () => {
@@ -704,15 +871,34 @@ const ComplianceManagement = () => {
       default: data = [];
     }
     
-    if (searchTerm) {
-      data = data.filter(item => 
-        Object.values(item).some(val => 
-          String(val).toLowerCase().includes(searchTerm.toLowerCase())
-        )
-      );
-    }
+    return applyFilters(data);
+  };
+
+  const handleExportReport = () => {
+    const data = getCurrentData();
     
-    return data;
+    const headers = columns[activeTab].map(col => col.label).join(',');
+    const rows = data.map(item => 
+      columns[activeTab].map(col => {
+        if (col.render) {
+          return `"${col.key === 'status' ? item.status : item[col.key]}"`;
+        }
+        return `"${item[col.key] || ''}"`;
+      }).join(',')
+    ).join('\n');
+    
+    const csvContent = `${headers}\n${rows}`;
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `compliance-${activeTab}-${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    showNotificationMessage(`${data.length} ${activeTab} items exported successfully`, 'success');
   };
 
   const complianceStats = {
@@ -720,25 +906,26 @@ const ComplianceManagement = () => {
     expiredDocuments: expiredDocuments.length,
     activeViolations: complianceViolations.filter(v => v.status !== 'resolved').length,
     auditEntries: auditLogs.length,
-    pendingRenewals: renewalRequests.filter(r => r.status.includes('pending')).length,
+    pendingRenewals: renewalRequests.filter(r => r.status.includes('pending') || r.status.includes('under')).length,
     highRiskEntities: expiredDocuments.filter(d => d.riskLevel === 'high' || d.riskLevel === 'critical').length
-  };
-
-  const handleExportReport = () => {
-    const data = getCurrentData();
-    const report = {
-      generatedAt: new Date().toISOString(),
-      tab: activeTab,
-      filter: filters,
-      items: data.length,
-      data: data
-    };
-    console.log('Exporting report:', report);
-    alert(`Report exported with ${data.length} items`);
   };
 
   return (
     <div className="compliance-management">
+      {/* Notification Component */}
+      {showNotification && (
+        <div className={`notification notification-${notificationType}`}>
+          <div className="notification-content">
+            {notificationType === 'success' && <HiCheckCircle />}
+            {notificationType === 'error' && <HiExclamationCircle />}
+            {notificationType === 'warning' && <HiInformationCircle />}
+            {notificationType === 'info' && <HiInformationCircle />}
+            <span>{notificationMessage}</span>
+          </div>
+          <button className="notification-close" onClick={() => setShowNotification(false)}>×</button>
+        </div>
+      )}
+
       <div className="page-header">
         <h1>Compliance & Audit Management</h1>
         <p>Monitor regulatory compliance, document expiry, and maintain audit trails</p>
@@ -851,38 +1038,126 @@ const ComplianceManagement = () => {
             onChange={(value) => setSearchTerm(value)}
             value={searchTerm}
           />
-          <button className="btn btn-outline">
-            <HiFilter /> Filter
-          </button>
-          <select 
-            className="filter-select"
-            value={filters.entityType}
-            onChange={(e) => setFilters({...filters, entityType: e.target.value})}
+          <button 
+            className="btn btn-outline"
+            onClick={() => setShowFilters(!showFilters)}
           >
-            <option value="all">All Types</option>
-            <option value="doctor">Doctors</option>
-            <option value="pharmacy">Pharmacies</option>
-            <option value="rider">Delivery Partners</option>
-          </select>
+            <HiFilter /> {showFilters ? 'Hide Filters' : 'Show Filters'}
+          </button>
         </div>
         <div className="toolbar-right">
           <button className="btn btn-outline" onClick={handleExportReport}>
             <HiDownload /> Export Report
           </button>
-          {activeTab === 'audit' && (
-            <button className="btn btn-primary" onClick={generateComplianceReport}>
-              Generate Audit Report
-            </button>
-          )}
         </div>
       </div>
+
+      {showFilters && (
+        <div className="filters-panel card">
+          <h4>Filters</h4>
+          <div className="filters-grid">
+            <div className="filter-group">
+              <label>Entity Type:</label>
+              <select 
+                value={filters.entityType}
+                onChange={(e) => setFilters({...filters, entityType: e.target.value})}
+              >
+                <option value="all">All Types</option>
+                <option value="doctor">Doctors</option>
+                <option value="pharmacy">Pharmacies</option>
+                <option value="rider">Delivery Partners</option>
+              </select>
+            </div>
+            
+            {(activeTab === 'expiring' || activeTab === 'expired') && (
+              <div className="filter-group">
+                <label>Days Range:</label>
+                <select 
+                  value={filters.daysRange}
+                  onChange={(e) => setFilters({...filters, daysRange: e.target.value})}
+                >
+                  <option value="all">All</option>
+                  <option value="critical">Critical (&lt; 7 days)</option>
+                  <option value="warning">Warning (7-30 days)</option>
+                </select>
+              </div>
+            )}
+            
+            {activeTab === 'violations' && (
+              <div className="filter-group">
+                <label>Severity:</label>
+                <select 
+                  value={filters.severity}
+                  onChange={(e) => setFilters({...filters, severity: e.target.value})}
+                >
+                  <option value="all">All</option>
+                  <option value="high">High</option>
+                  <option value="medium">Medium</option>
+                  <option value="low">Low</option>
+                </select>
+              </div>
+            )}
+            
+            <div className="filter-group">
+              <label>Status:</label>
+              <select 
+                value={filters.status}
+                onChange={(e) => setFilters({...filters, status: e.target.value})}
+              >
+                <option value="all">All</option>
+                {activeTab === 'expiring' && <option value="expiring_soon">Expiring Soon</option>}
+                {activeTab === 'expired' && <option value="expired">Expired</option>}
+                {activeTab === 'violations' && (
+                  <>
+                    <option value="pending">Pending</option>
+                    <option value="investigating">Investigating</option>
+                    <option value="resolved">Resolved</option>
+                  </>
+                )}
+                {activeTab === 'renewals' && (
+                  <>
+                    <option value="pending_review">Pending Review</option>
+                    <option value="approved">Approved</option>
+                    <option value="rejected">Rejected</option>
+                  </>
+                )}
+              </select>
+            </div>
+            
+            <div className="filter-actions">
+              <button 
+                className="btn btn-sm btn-outline"
+                onClick={() => setFilters({
+                  entityType: 'all',
+                  daysRange: 'all',
+                  status: 'all',
+                  severity: 'all'
+                })}
+              >
+                Clear All Filters
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="card">
         <Table
           columns={columns[activeTab]}
           data={getCurrentData()}
-          emptyMessage={`No ${activeTab} items found`}
+          emptyMessage={`No ${activeTab} items found. Try adjusting your filters.`}
         />
+        <div className="table-footer">
+          <div className="table-summary">
+            Showing {getCurrentData().length} of {
+              activeTab === 'expiring' ? expiringDocuments.length :
+              activeTab === 'expired' ? expiredDocuments.length :
+              activeTab === 'violations' ? complianceViolations.length :
+              activeTab === 'audit' ? auditLogs.length :
+              renewalRequests.length
+            } items
+          </div>
+        </div>
       </div>
 
       {activeTab === 'violations' && (
@@ -893,7 +1168,7 @@ const ComplianceManagement = () => {
             </h3>
             <button 
               className="btn btn-sm btn-error"
-              onClick={() => flagHighRiskViolation(complianceViolations[1])}
+              onClick={flagHighRiskViolation}
             >
               Flag Critical Case
             </button>
@@ -909,9 +1184,12 @@ const ComplianceManagement = () => {
                 Condition: Gestational Diabetes | Last Review: 2024-01-20 | Next Appointment: 2024-01-30
               </p>
               <div className="case-actions">
-                <button className="btn btn-sm btn-outline">View Medical Records</button>
-                <button className="btn btn-sm btn-error">Escalate to Specialist</button>
-                <button className="btn btn-sm">Schedule Follow-up</button>
+                <button className="btn btn-sm btn-outline" onClick={() => showNotificationMessage('Opening medical records...', 'info')}>
+                  View Medical Records
+                </button>
+                <button className="btn btn-sm btn-error" onClick={() => showNotificationMessage('Case escalated to specialist', 'warning')}>
+                  Escalate to Specialist
+                </button>
               </div>
             </div>
             <div className="risk-case medium">
@@ -924,429 +1202,263 @@ const ComplianceManagement = () => {
                 Condition: Hypertension | Last Review: 2024-01-22 | Next Appointment: 2024-02-05
               </p>
               <div className="case-actions">
-                <button className="btn btn-sm btn-outline">View Details</button>
-                <button className="btn btn-sm btn-warning">Monitor Closely</button>
+                <button className="btn btn-sm btn-outline" onClick={() => showNotificationMessage('Opening case details...', 'info')}>
+                  View Details
+                </button>
+                <button className="btn btn-sm btn-warning" onClick={() => showNotificationMessage('Case added to close monitoring list', 'info')}>
+                  Monitor Closely
+                </button>
               </div>
             </div>
-          </div>
-        </div>
-      )}
-
-      {(activeTab === 'expired' || activeTab === 'expiring') && (
-        <div className="historical-records card">
-          <h3>Historical Compliance Records</h3>
-          <div className="records-table">
-            <table>
-              <thead>
-                <tr>
-                  <th>Entity</th>
-                  <th>Period</th>
-                  <th>Compliance Score</th>
-                  <th>Violations</th>
-                  <th>Audits</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {historicalRecords.map(record => (
-                  <tr key={record.id}>
-                    <td>{record.entity}</td>
-                    <td>{record.period}</td>
-                    <td>
-                      <span className={`compliance-score ${record.complianceScore > 80 ? 'good' : 'medium'}`}>
-                        {record.complianceScore}%
-                      </span>
-                    </td>
-                    <td>{record.violations}</td>
-                    <td>{record.audits}</td>
-                    <td>
-                      <span className={`status-badge status-${record.status}`}>
-                        {record.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
           </div>
         </div>
       )}
 
       {showModal && selectedItem && (
         <Modal
-          title={getModalTitle()}
+          title={
+            modalType === 'document' ? 'Document Compliance Details' :
+            modalType === 'violation' ? 'Violation Investigation' :
+            modalType === 'audit' ? 'Audit Log Details' :
+            modalType === 'confirm' ? 'Confirm Action' :
+            'Compliance Details'
+          }
           onClose={() => {
             setShowModal(false);
             setSelectedItem(null);
             setModalType('view');
           }}
-          size="large"
+          size={modalType === 'confirm' ? 'small' : 'large'}
         >
           <div className="compliance-details-modal">
-            {renderModalContent()}
+            {modalType === 'confirm' ? (
+              <div className="confirmation-modal">
+                <div className="confirmation-icon">
+                  {selectedItem.action === 'restricted' || selectedItem.action === 'restore' ? (
+                    <HiLockClosed />
+                  ) : selectedItem.action === 'resolve' ? (
+                    <HiCheckCircle />
+                  ) : selectedItem.action === 'approved' ? (
+                    <HiCheckCircle />
+                  ) : selectedItem.action === 'rejected' ? (
+                    <HiXCircle />
+                  ) : (
+                    <HiInformationCircle />
+                  )}
+                </div>
+                <div className="confirmation-message">
+                  {selectedItem.action === 'restricted' && (
+                    <p>Are you sure you want to restrict <strong>{selectedItem.entity}</strong> due to expired <strong>{selectedItem.document}</strong>?</p>
+                  )}
+                  {selectedItem.action === 'restore' && (
+                    <p>Are you sure you want to restore access for <strong>{selectedItem.entity}</strong>?</p>
+                  )}
+                  {selectedItem.action === 'resolve' && (
+                    <p>Are you sure you want to mark violation <strong>{selectedItem.violationId}</strong> as resolved?</p>
+                  )}
+                  {selectedItem.action === 'approved' && (
+                    <p>Are you sure you want to approve renewal request <strong>{selectedItem.requestId}</strong> for <strong>{selectedItem.entity}</strong>?</p>
+                  )}
+                  {selectedItem.action === 'rejected' && (
+                    <p>Are you sure you want to reject renewal request <strong>{selectedItem.requestId}</strong> for <strong>{selectedItem.entity}</strong>?</p>
+                  )}
+                  <p className="confirmation-warning">This action cannot be undone.</p>
+                </div>
+                <div className="confirmation-actions">
+                  <button 
+                    className="btn btn-outline"
+                    onClick={() => {
+                      setShowModal(false);
+                      setSelectedItem(null);
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    className="btn btn-primary"
+                    onClick={() => {
+                      if (selectedItem.action === 'restricted' || selectedItem.action === 'restore') {
+                        confirmRestriction();
+                      } else if (selectedItem.action === 'resolve') {
+                        confirmResolveViolation();
+                      } else if (selectedItem.action === 'approved' || selectedItem.action === 'rejected') {
+                        confirmRenewalAction();
+                      }
+                    }}
+                  >
+                    Confirm
+                  </button>
+                </div>
+              </div>
+            ) : modalType === 'document' ? (
+              <div className="document-details">
+                <div className="info-grid">
+                  <div className="info-item">
+                    <label>Entity:</label>
+                    <span>{selectedItem.entity}</span>
+                  </div>
+                  <div className="info-item">
+                    <label>Type:</label>
+                    <span className="entity-type">
+                      {selectedItem.type === 'doctor' && <HiUserGroup />}
+                      {selectedItem.type === 'pharmacy' && <HiOfficeBuilding />}
+                      {selectedItem.type === 'rider' && <HiTruck />}
+                      {selectedItem.type}
+                    </span>
+                  </div>
+                  <div className="info-item">
+                    <label>Document:</label>
+                    <span>{selectedItem.document}</span>
+                  </div>
+                  <div className="info-item">
+                    <label>Expiry Date:</label>
+                    <span>{selectedItem.expiryDate}</span>
+                  </div>
+                  <div className="info-item">
+                    <label>Days Left:</label>
+                    <span className={`days-left ${selectedItem.daysLeft < 30 ? 'warning' : 'normal'}`}>
+                      {selectedItem.daysLeft} days
+                    </span>
+                  </div>
+                  <div className="info-item">
+                    <label>Compliance Score:</label>
+                    <span className={`compliance-score ${selectedItem.complianceScore > 80 ? 'good' : 'medium'}`}>
+                      {selectedItem.complianceScore}%
+                    </span>
+                  </div>
+                  <div className="info-item">
+                    <label>Risk Level:</label>
+                    <span className={`risk-level-badge ${selectedItem.riskLevel}`}>
+                      {selectedItem.riskLevel.toUpperCase()}
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="document-preview-section">
+                  <h5>Document Preview</h5>
+                  <div className="document-preview">
+                    <HiDocumentText />
+                    <p>Document image preview would appear here</p>
+                  </div>
+                </div>
+                
+                <div className="document-actions">
+                  <button className="btn btn-outline" onClick={() => showNotificationMessage('Document download initiated', 'info')}>
+                    <HiDownload /> Download Document
+                  </button>
+                  <button className="btn btn-primary" onClick={() => sendReminder(selectedItem)}>
+                    <HiBell /> {selectedItem.reminderSent ? 'Re-send Reminder' : 'Send Reminder'}
+                  </button>
+                </div>
+              </div>
+            ) : modalType === 'violation' ? (
+              <div className="violation-details">
+                <div className="info-grid">
+                  <div className="info-item">
+                    <label>Violation ID:</label>
+                    <span>{selectedItem.violationId}</span>
+                  </div>
+                  <div className="info-item">
+                    <label>Entity:</label>
+                    <span>{selectedItem.entity}</span>
+                  </div>
+                  <div className="info-item">
+                    <label>Type:</label>
+                    <span>{selectedItem.type}</span>
+                  </div>
+                  <div className="info-item full-width">
+                    <label>Violation:</label>
+                    <span>{selectedItem.violation}</span>
+                  </div>
+                  <div className="info-item">
+                    <label>Severity:</label>
+                    <span className={`severity-badge ${selectedItem.severity}`}>
+                      {selectedItem.severity.toUpperCase()}
+                    </span>
+                  </div>
+                  <div className="info-item">
+                    <label>Reported On:</label>
+                    <span>{selectedItem.reported}</span>
+                  </div>
+                  <div className="info-item">
+                    <label>Status:</label>
+                    <span className={`status-badge status-${selectedItem.status}`}>
+                      {selectedItem.status}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="audit-trail-section">
+                  <h5>Audit Trail</h5>
+                  <div className="audit-trail">
+                    {selectedItem.auditTrail?.map((entry, index) => (
+                      <div key={index} className="audit-entry">
+                        <div className="audit-timestamp">{entry.date}</div>
+                        <div className="audit-action">{entry.action}</div>
+                        <div className="audit-user">{entry.user}</div>
+                      </div>
+                    )) || <p>No audit trail available</p>}
+                  </div>
+                </div>
+
+                <div className="violation-actions">
+                  <button className="btn btn-warning" onClick={() => resolveViolation(selectedItem)}>
+                    Mark as Resolved
+                  </button>
+                  <button className="btn btn-outline" onClick={() => setShowModal(false)}>
+                    Close
+                  </button>
+                </div>
+              </div>
+            ) : modalType === 'audit' ? (
+              <div className="audit-details">
+                <div className="info-grid">
+                  <div className="info-item">
+                    <label>Log ID:</label>
+                    <span>{selectedItem.id}</span>
+                  </div>
+                  <div className="info-item">
+                    <label>Admin User:</label>
+                    <span>{selectedItem.admin}</span>
+                  </div>
+                  <div className="info-item">
+                    <label>Role:</label>
+                    <span className="role-badge">{selectedItem.adminRole}</span>
+                  </div>
+                  <div className="info-item">
+                    <label>Action:</label>
+                    <span>{selectedItem.action}</span>
+                  </div>
+                  <div className="info-item">
+                    <label>Entity:</label>
+                    <span>{selectedItem.entity}</span>
+                  </div>
+                  <div className="info-item">
+                    <label>Timestamp:</label>
+                    <span>{selectedItem.timestamp}</span>
+                  </div>
+                  <div className="info-item">
+                    <label>IP Address:</label>
+                    <span>{selectedItem.ip}</span>
+                  </div>
+                </div>
+                
+                <div className="audit-actions">
+                  <button className="btn btn-outline" onClick={() => setShowModal(false)}>
+                    Close
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="default-details">
+                <p>Details for {selectedItem.entity}</p>
+              </div>
+            )}
           </div>
         </Modal>
       )}
     </div>
   );
-
-  function getModalTitle() {
-    switch (modalType) {
-      case 'document': return 'Document Compliance Details';
-      case 'violation': return 'Violation Investigation';
-      case 'audit': return 'Audit Log Details';
-      case 'auditTrail': return 'Violation Audit Trail';
-      case 'renewal': return 'Renewal Request Details';
-      default: return 'Compliance Details';
-    }
-  }
-
-  function renderModalContent() {
-    switch (modalType) {
-      case 'document':
-        return renderDocumentDetails();
-      case 'violation':
-        return renderViolationDetails();
-      case 'audit':
-        return renderAuditDetails();
-      case 'auditTrail':
-        return renderAuditTrail();
-      case 'renewal':
-        return renderRenewalDetails();
-      default:
-        return renderDefaultDetails();
-    }
-  }
-
-  function renderDocumentDetails() {
-    return (
-      <div className="document-details">
-        <div className="info-grid">
-          <div className="info-item">
-            <label>Entity:</label>
-            <span>{selectedItem.entity}</span>
-          </div>
-          <div className="info-item">
-            <label>Entity ID:</label>
-            <span>{selectedItem.entityId}</span>
-          </div>
-          <div className="info-item">
-            <label>Type:</label>
-            <span className="entity-type">
-              {selectedItem.type === 'doctor' && <HiUserGroup />}
-              {selectedItem.type === 'pharmacy' && <HiOfficeBuilding />}
-              {selectedItem.type === 'rider' && <HiTruck />}
-              {selectedItem.type}
-            </span>
-          </div>
-          <div className="info-item">
-            <label>Document:</label>
-            <span>{selectedItem.document}</span>
-          </div>
-          <div className="info-item">
-            <label>Document ID:</label>
-            <span>{selectedItem.documentId}</span>
-          </div>
-          <div className="info-item">
-            <label>Expiry Date:</label>
-            <span>{selectedItem.expiryDate}</span>
-          </div>
-          <div className="info-item">
-            <label>Days Left:</label>
-            <span className={`days-left ${selectedItem.daysLeft < 30 ? 'warning' : 'normal'}`}>
-              {selectedItem.daysLeft} days
-            </span>
-          </div>
-          <div className="info-item">
-            <label>Compliance Score:</label>
-            <span className={`compliance-score ${selectedItem.complianceScore > 80 ? 'good' : 'medium'}`}>
-              {selectedItem.complianceScore}%
-            </span>
-          </div>
-          <div className="info-item">
-            <label>Risk Level:</label>
-            <span className={`risk-level-badge ${selectedItem.riskLevel}`}>
-              {selectedItem.riskLevel.toUpperCase()}
-            </span>
-          </div>
-          <div className="info-item">
-            <label>Last Audit:</label>
-            <span>{selectedItem.lastAudit}</span>
-          </div>
-        </div>
-        
-        <div className="document-preview-section">
-          <h5>Document Preview</h5>
-          <div className="document-preview">
-            <HiDocumentText />
-            <p>Document image preview would appear here</p>
-            <small>Supported formats: PDF, JPEG, PNG (Max 10MB)</small>
-          </div>
-        </div>
-        
-        <div className="document-actions">
-          <button className="btn btn-outline">
-            <HiDownload /> Download Document
-          </button>
-          <button className="btn btn-primary" onClick={() => sendReminder(selectedItem)}>
-            <HiBell /> Send Reminder
-          </button>
-          {selectedItem.status === 'expired' && (
-            <>
-              <button className="btn btn-warning" onClick={() => restrictEntity(selectedItem)}>
-                <HiLockClosed /> Restrict Access
-              </button>
-              <button className="btn btn-error" onClick={() => requestRenewal(selectedItem)}>
-                <HiXCircle /> Force Renewal
-              </button>
-            </>
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  function renderViolationDetails() {
-    return (
-      <div className="violation-details">
-        <div className="info-grid">
-          <div className="info-item">
-            <label>Violation ID:</label>
-            <span>{selectedItem.violationId}</span>
-          </div>
-          <div className="info-item">
-            <label>Entity:</label>
-            <span>{selectedItem.entity}</span>
-          </div>
-          <div className="info-item">
-            <label>Type:</label>
-            <span>{selectedItem.type}</span>
-          </div>
-          <div className="info-item full-width">
-            <label>Violation:</label>
-            <span>{selectedItem.violation}</span>
-          </div>
-          <div className="info-item">
-            <label>Severity:</label>
-            <span className={`severity-badge ${selectedItem.severity}`}>
-              {selectedItem.severity.toUpperCase()}
-            </span>
-          </div>
-          <div className="info-item">
-            <label>Category:</label>
-            <span>{selectedItem.category}</span>
-          </div>
-          <div className="info-item">
-            <label>Impact:</label>
-            <span>{selectedItem.impact}</span>
-          </div>
-          <div className="info-item">
-            <label>Reported On:</label>
-            <span>{selectedItem.reported}</span>
-          </div>
-          <div className="info-item">
-            <label>Status:</label>
-            <span className={`status-badge status-${selectedItem.status}`}>
-              {selectedItem.status}
-            </span>
-          </div>
-        </div>
-
-        <div className="audit-trail-section">
-          <h5>Audit Trail</h5>
-          <div className="audit-trail">
-            {selectedItem.auditTrail?.map((entry, index) => (
-              <div key={index} className="audit-entry">
-                <div className="audit-timestamp">{entry.date}</div>
-                <div className="audit-action">{entry.action}</div>
-                <div className="audit-user">{entry.user}</div>
-              </div>
-            )) || <p>No audit trail available</p>}
-          </div>
-        </div>
-
-        <div className="violation-actions">
-          <button className="btn btn-outline" onClick={() => investigateViolation(selectedItem)}>
-            Investigate Further
-          </button>
-          <button className="btn btn-warning" onClick={() => takeAction(selectedItem)}>
-            Take Corrective Action
-          </button>
-          {selectedItem.severity === 'high' && (
-            <button className="btn btn-error" onClick={() => flagHighRiskViolation(selectedItem)}>
-              Flag as High-Risk
-            </button>
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  function renderAuditDetails() {
-    return (
-      <div className="audit-details">
-        <div className="info-grid">
-          <div className="info-item">
-            <label>Log ID:</label>
-            <span>{selectedItem.id}</span>
-          </div>
-          <div className="info-item">
-            <label>Admin User:</label>
-            <span>{selectedItem.admin}</span>
-          </div>
-          <div className="info-item">
-            <label>Role:</label>
-            <span className="role-badge">{selectedItem.adminRole}</span>
-          </div>
-          <div className="info-item">
-            <label>Action:</label>
-            <span>{selectedItem.action}</span>
-          </div>
-          <div className="info-item">
-            <label>Entity:</label>
-            <span>{selectedItem.entity}</span>
-          </div>
-          <div className="info-item">
-            <label>Entity ID:</label>
-            <span>{selectedItem.entityId}</span>
-          </div>
-          <div className="info-item">
-            <label>Entity Type:</label>
-            <span>{selectedItem.entityType}</span>
-          </div>
-          <div className="info-item">
-            <label>Timestamp:</label>
-            <span>{selectedItem.timestamp}</span>
-          </div>
-          <div className="info-item">
-            <label>IP Address:</label>
-            <span>{selectedItem.ip}</span>
-          </div>
-          <div className="info-item">
-            <label>Session ID:</label>
-            <span>{selectedItem.sessionId}</span>
-          </div>
-          <div className="info-item full-width">
-            <label>Changes Made:</label>
-            <pre className="changes-log">
-              {JSON.stringify(selectedItem.changes, null, 2)}
-            </pre>
-          </div>
-        </div>
-        
-        <div className="audit-actions">
-          <button className="btn btn-outline" onClick={() => exportLog(selectedItem)}>
-            <HiDownload /> Download Full Log
-          </button>
-          <button className="btn btn-primary">
-            Generate Certificate
-          </button>
-          <button className="btn btn-secondary">
-            View Session Details
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  function renderAuditTrail() {
-    return (
-      <div className="audit-trail-details">
-        <h5>Complete Audit Trail for {selectedItem.violationId}</h5>
-        <div className="audit-trail-list">
-          {selectedItem.auditTrail?.map((entry, index) => (
-            <div key={index} className="audit-trail-item">
-              <div className="trail-header">
-                <span className="trail-date">{entry.date}</span>
-                <span className="trail-user">{entry.user}</span>
-              </div>
-              <div className="trail-action">{entry.action}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  function renderRenewalDetails() {
-    return (
-      <div className="renewal-details">
-        <div className="info-grid">
-          <div className="info-item">
-            <label>Request ID:</label>
-            <span>{selectedItem.requestId}</span>
-          </div>
-          <div className="info-item">
-            <label>Entity:</label>
-            <span>{selectedItem.entity}</span>
-          </div>
-          <div className="info-item">
-            <label>Entity Type:</label>
-            <span>{selectedItem.entityType}</span>
-          </div>
-          <div className="info-item">
-            <label>Document:</label>
-            <span>{selectedItem.document}</span>
-          </div>
-          <div className="info-item">
-            <label>Original Expiry:</label>
-            <span>{selectedItem.originalExpiry}</span>
-          </div>
-          <div className="info-item">
-            <label>Submitted Date:</label>
-            <span>{selectedItem.submittedDate}</span>
-          </div>
-          <div className="info-item">
-            <label>Submitted By:</label>
-            <span>{selectedItem.submittedBy}</span>
-          </div>
-          <div className="info-item">
-            <label>Status:</label>
-            <span className={`status-badge status-${selectedItem.status}`}>
-              {selectedItem.status.replace('_', ' ')}
-            </span>
-          </div>
-          <div className="info-item">
-            <label>Priority:</label>
-            <span className={`priority-badge ${selectedItem.priority}`}>
-              {selectedItem.priority.toUpperCase()}
-            </span>
-          </div>
-          <div className="info-item">
-            <label>Attached Files:</label>
-            <span>{selectedItem.attachedFiles} files</span>
-          </div>
-          <div className="info-item full-width">
-            <label>Review Notes:</label>
-            <p>{selectedItem.reviewNotes}</p>
-          </div>
-        </div>
-
-        <div className="renewal-actions">
-          <button className="btn btn-success" onClick={() => approveRenewal(selectedItem)}>
-            <HiCheckCircle /> Approve Renewal
-          </button>
-          <button className="btn btn-error" onClick={() => rejectRenewal(selectedItem)}>
-            <HiXCircle /> Reject Renewal
-          </button>
-          <button className="btn btn-outline">
-            Request Additional Documents
-          </button>
-          <button className="btn btn-primary">
-            <HiEye /> View Uploaded Documents
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  function renderDefaultDetails() {
-    return (
-      <div className="default-details">
-        <p>Details for {selectedItem.entity}</p>
-      </div>
-    );
-  }
 };
 
 export default ComplianceManagement;

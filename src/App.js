@@ -13,6 +13,7 @@ import ComplianceManagement from './pages/ComplianceManagement';
 import RoleManagement from './pages/RoleManagement';
 import ContentManagement from './pages/ContentManagement';
 import AuditLogs from './pages/AuditLogs';
+import Settings from './pages/Settings'; // Import Settings page
 import { useAuth } from './context/AuthContext';
 import './App.css';
 
@@ -43,6 +44,7 @@ function App() {
             <Route path="roles" element={<RoleManagement />} />
             <Route path="content" element={<ContentManagement />} />
             <Route path="audit-logs" element={<AuditLogs />} />
+            <Route path="settings" element={<Settings />} /> {/* Add Settings route */}
           </Route>
         </Routes>
       </div>
