@@ -41,9 +41,6 @@ const PendingApprovals = () => {
                 {item.type.replace('_', ' ').toUpperCase()}
               </div>
             </div>
-            <button className="btn btn-sm btn-outline">
-              Review
-            </button>
           </div>
         ))}
       </div>

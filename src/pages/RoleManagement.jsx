@@ -10,7 +10,9 @@ import {
   HiLockClosed,
   HiUserGroup,
   HiShieldCheck,
-  HiDocumentText
+  HiDocumentText,
+  HiEyeOff,
+  HiEye as HiEyeShow
 } from 'react-icons/hi';
 import Table from '../components/common/Table';
 import Modal from '../components/common/Modal';
@@ -21,19 +23,23 @@ const RoleManagement = () => {
   const [selectedRole, setSelectedRole] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [roles, setRoles] = useState([]);
-  const [permissions, setPermissions] = useState([]);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     status: 'active',
-    assignedPermissions: {}
+    assignedPermissions: {},
+    email: '',
+    password: '',
+    confirmPassword: ''
   });
-  const [permissionMatrix, setPermissionMatrix] = useState({});
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [roleToDelete, setRoleToDelete] = useState(null);
   const [showStatusConfirm, setShowStatusConfirm] = useState(false);
   const [roleToToggle, setRoleToToggle] = useState(null);
   const [successMessage, setSuccessMessage] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [passwordStrength, setPasswordStrength] = useState('');
 
   // Permission modules according to FRD 3.1 and BRD 8.1
   const permissionModules = [
@@ -54,6 +60,21 @@ const RoleManagement = () => {
     { id: 'systemSettings', name: 'System Settings', description: 'Platform configuration and settings' }
   ];
 
+  // Calculate password strength
+  const calculatePasswordStrength = (password) => {
+    if (!password) return '';
+    
+    let strength = 0;
+    if (password.length >= 6) strength++;
+    if (/[A-Z]/.test(password)) strength++;
+    if (/[0-9]/.test(password)) strength++;
+    if (/[^A-Za-z0-9]/.test(password)) strength++;
+    
+    if (strength < 2) return 'weak';
+    if (strength < 4) return 'medium';
+    return 'strong';
+  };
+
   // Initialize roles with proper permissions
   const initializeRoles = () => {
     const savedRoles = localStorage.getItem('quickmed_roles');
@@ -73,8 +94,8 @@ const RoleManagement = () => {
         status: 'active',
         created: '2024-01-01',
         canDelete: false,
-        canEdit: false, // Super Admin cannot be edited
-        canDeactivate: false, // Super Admin cannot be suspended
+        canEdit: false,
+        canDeactivate: false,
         permissionsMap: {
           dashboard: { view: true, create: true, edit: true, delete: true },
           userManagement: { view: true, create: true, edit: true, delete: true },
@@ -102,8 +123,8 @@ const RoleManagement = () => {
         status: 'active',
         created: '2024-01-05',
         canDelete: true,
-        canEdit: true, // Can be edited
-        canDeactivate: true, // Can be suspended
+        canEdit: true,
+        canDeactivate: true,
         permissionsMap: {
           dashboard: { view: true, create: false, edit: false, delete: false },
           userManagement: { view: true, create: false, edit: true, delete: false },
@@ -131,8 +152,8 @@ const RoleManagement = () => {
         status: 'active',
         created: '2024-01-08',
         canDelete: true,
-        canEdit: true, // Can be edited
-        canDeactivate: true, // Can be suspended
+        canEdit: true,
+        canDeactivate: true,
         permissionsMap: {
           dashboard: { view: true, create: false, edit: false, delete: false },
           userManagement: { view: true, create: false, edit: false, delete: false },
@@ -160,8 +181,8 @@ const RoleManagement = () => {
         status: 'active',
         created: '2024-01-10',
         canDelete: true,
-        canEdit: true, // Can be edited
-        canDeactivate: true, // Can be suspended
+        canEdit: true,
+        canDeactivate: true,
         permissionsMap: {
           dashboard: { view: true, create: false, edit: false, delete: false },
           userManagement: { view: true, create: false, edit: false, delete: false },
@@ -189,8 +210,8 @@ const RoleManagement = () => {
         status: 'inactive',
         created: '2024-01-12',
         canDelete: true,
-        canEdit: true, // Can be edited
-        canDeactivate: true, // Can be suspended/activated
+        canEdit: true,
+        canDeactivate: true,
         permissionsMap: {
           dashboard: { view: true, create: false, edit: false, delete: false },
           userManagement: { view: false, create: false, edit: false, delete: false },
@@ -219,6 +240,10 @@ const RoleManagement = () => {
     const rolesData = initializeRoles();
     setRoles(rolesData);
   }, []);
+
+  useEffect(() => {
+    setPasswordStrength(calculatePasswordStrength(formData.password));
+  }, [formData.password]);
 
   const columns = [
     { key: 'name', label: 'Role Name' },
@@ -252,7 +277,7 @@ const RoleManagement = () => {
             className="btn-icon btn-edit"
             onClick={() => handleEditRole(role)}
             title="Edit Role"
-            disabled={role.name === 'Super Admin'} // Only Super Admin cannot be edited
+            disabled={role.name === 'Super Admin'}
           >
             <HiPencil />
           </button>
@@ -260,7 +285,7 @@ const RoleManagement = () => {
             className="btn-icon btn-delete"
             onClick={() => confirmDeleteRole(role)}
             title="Delete Role"
-            disabled={role.name === 'Super Admin'} // Only Super Admin cannot be deleted
+            disabled={role.name === 'Super Admin'}
           >
             <HiTrash />
           </button>
@@ -268,7 +293,7 @@ const RoleManagement = () => {
             className="btn-icon btn-status"
             onClick={() => confirmToggleRoleStatus(role)}
             title={role.status === 'active' ? 'Suspend' : 'Activate'}
-            disabled={role.name === 'Super Admin'} // Only Super Admin cannot be suspended
+            disabled={role.name === 'Super Admin'}
           >
             {role.status === 'active' ? <HiLockClosed /> : <HiLockOpen />}
           </button>
@@ -294,7 +319,10 @@ const RoleManagement = () => {
       name: role.name,
       description: role.description,
       status: role.status,
-      assignedPermissions: role.permissionsMap || {}
+      assignedPermissions: role.permissionsMap || {},
+      email: '',
+      password: '',
+      confirmPassword: ''
     });
     setIsEditing(true);
     setShowModal(true);
@@ -305,6 +333,16 @@ const RoleManagement = () => {
       alert('Super Admin role cannot be deleted.');
       return;
     }
+    
+    // Check if there are admin users assigned to this role
+    const adminUsers = JSON.parse(localStorage.getItem('quickmed_admins') || '[]');
+    const assignedAdmins = adminUsers.filter(admin => admin.roleId === role.id);
+    
+    if (assignedAdmins.length > 0) {
+      alert(`Cannot delete role. There are ${assignedAdmins.length} admin users assigned to this role. Please reassign or delete those users first.`);
+      return;
+    }
+    
     setRoleToDelete(role);
     setShowDeleteConfirm(true);
   };
@@ -348,8 +386,21 @@ const RoleManagement = () => {
       setRoles(updatedRoles);
       localStorage.setItem('quickmed_roles', JSON.stringify(updatedRoles));
       
+      // Update admin users status if any
+      const adminUsers = JSON.parse(localStorage.getItem('quickmed_admins') || '[]');
+      const updatedAdminUsers = adminUsers.map(admin => {
+        if (admin.roleId === roleToToggle.id) {
+          return {
+            ...admin,
+            status: roleToToggle.status === 'active' ? 'inactive' : 'active'
+          };
+        }
+        return admin;
+      });
+      localStorage.setItem('quickmed_admins', JSON.stringify(updatedAdminUsers));
+      
       const action = roleToToggle.status === 'active' ? 'suspended' : 'activated';
-      setSuccessMessage(`Role "${roleToToggle.name}" has been ${action} successfully.`);
+      setSuccessMessage(`Role "${roleToToggle.name}" has been ${action} successfully. All associated admin users have also been ${action}.`);
       setTimeout(() => setSuccessMessage(''), 3000);
       
       setShowStatusConfirm(false);
@@ -363,7 +414,10 @@ const RoleManagement = () => {
       name: '',
       description: '',
       status: 'active',
-      assignedPermissions: {}
+      assignedPermissions: {},
+      email: '',
+      password: '',
+      confirmPassword: ''
     });
     setIsEditing(true);
     setShowModal(true);
@@ -405,19 +459,71 @@ const RoleManagement = () => {
     }));
   };
 
+  const validateEmail = (email) => {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
+    
+    // Validation for new roles
+    if (!selectedRole) {
+      // Validate email
+      if (!validateEmail(formData.email)) {
+        alert('Please enter a valid email address!');
+        return;
+      }
+      
+      // Check if email already exists
+      const existingAdmins = JSON.parse(localStorage.getItem('quickmed_admins') || '[]');
+      if (existingAdmins.some(admin => admin.email === formData.email)) {
+        alert('This email is already registered!');
+        return;
+      }
+      
+      // Validate passwords
+      if (formData.password !== formData.confirmPassword) {
+        alert('Passwords do not match!');
+        return;
+      }
+      
+      if (formData.password.length < 6) {
+        alert('Password must be at least 6 characters long!');
+        return;
+      }
+      
+      if (!/[A-Z]/.test(formData.password)) {
+        alert('Password must contain at least one uppercase letter!');
+        return;
+      }
+      
+      if (!/[0-9]/.test(formData.password)) {
+        alert('Password must contain at least one number!');
+        return;
+      }
+    }
+    
+    // Validate permissions (at least one module should have view permission)
+    const hasViewPermission = Object.values(formData.assignedPermissions).some(
+      perms => perms && perms.view === true
+    );
+    
+    if (!hasViewPermission) {
+      alert('Please assign at least view permission to one module!');
+      return;
+    }
     
     const permissionCount = Object.values(formData.assignedPermissions).reduce(
       (count, perms) => count + Object.values(perms).filter(Boolean).length,
       0
     );
     
-    // Calculate assigned users count (preserve existing users or set to 0 for new role)
+    // Calculate assigned users count
     const existingUsers = selectedRole ? selectedRole.users : 0;
     
     const newRole = {
-      id: selectedRole ? selectedRole.id : Date.now(), // Use timestamp for unique ID
+      id: selectedRole ? selectedRole.id : Date.now(),
       name: formData.name,
       description: formData.description,
       users: existingUsers,
@@ -438,9 +544,33 @@ const RoleManagement = () => {
       );
       setSuccessMessage(`Role "${formData.name}" has been updated successfully.`);
     } else {
-      // Create new role
+      // Create new role and admin user
       updatedRoles = [...roles, newRole];
-      setSuccessMessage(`Role "${formData.name}" has been created successfully.`);
+      
+      // Create admin user with credentials
+      const newAdmin = {
+        id: Date.now() + 1,
+        roleId: newRole.id,
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        roleName: formData.name,
+        permissionsMap: formData.assignedPermissions,
+        status: formData.status,
+        createdAt: new Date().toISOString(),
+        lastLogin: null
+      };
+      
+      // Save admin to localStorage
+      const existingAdmins = JSON.parse(localStorage.getItem('quickmed_admins') || '[]');
+      existingAdmins.push(newAdmin);
+      localStorage.setItem('quickmed_admins', JSON.stringify(existingAdmins));
+      
+      // Update role with user count
+      newRole.users = 1;
+      updatedRoles[updatedRoles.length - 1] = newRole;
+      
+      setSuccessMessage(`Role "${formData.name}" and admin user have been created successfully. The admin can now login with email: ${formData.email}`);
     }
     
     setRoles(updatedRoles);
@@ -450,6 +580,16 @@ const RoleManagement = () => {
     setShowModal(false);
     setSelectedRole(null);
     setIsEditing(false);
+    // Reset form data
+    setFormData({
+      name: '',
+      description: '',
+      status: 'active',
+      assignedPermissions: {},
+      email: '',
+      password: '',
+      confirmPassword: ''
+    });
   };
 
   const calculatePermissions = () => {
@@ -457,7 +597,9 @@ const RoleManagement = () => {
   };
 
   const calculateActiveUsers = () => {
-    return roles.reduce((total, role) => total + role.users, 0);
+    const adminUsers = JSON.parse(localStorage.getItem('quickmed_admins') || '[]');
+    const activeAdmins = adminUsers.filter(admin => admin.status === 'active');
+    return roles.reduce((total, role) => total + role.users, 0) + activeAdmins.length;
   };
 
   // Initialize form data when editing
@@ -467,7 +609,10 @@ const RoleManagement = () => {
         name: selectedRole.name,
         description: selectedRole.description,
         status: selectedRole.status,
-        assignedPermissions: selectedRole.permissionsMap || {}
+        assignedPermissions: selectedRole.permissionsMap || {},
+        email: '',
+        password: '',
+        confirmPassword: ''
       });
     }
   }, [selectedRole, isEditing]);
@@ -605,6 +750,87 @@ const RoleManagement = () => {
                   />
                 </div>
 
+                {/* Add these fields for NEW roles only */}
+                {!selectedRole && (
+                  <>
+                    <div className="form-group">
+                      <label className="form-label">Admin Email *</label>
+                      <input 
+                        type="email" 
+                        name="email"
+                        className="form-input" 
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        placeholder="Enter admin email address"
+                        required={!selectedRole}
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        This email will be used for login
+                      </p>
+                    </div>
+
+                    <div className="form-group">
+                      <label className="form-label">Password *</label>
+                      <div className="password-input-group">
+                        <input 
+                          type={showPassword ? "text" : "password"}
+                          name="password"
+                          className="form-input" 
+                          value={formData.password}
+                          onChange={handleInputChange}
+                          placeholder="Enter password"
+                          required={!selectedRole}
+                          minLength="6"
+                        />
+                        <button 
+                          type="button" 
+                          className="toggle-password"
+                          onClick={() => setShowPassword(!showPassword)}
+                        >
+                          {showPassword ? <HiEyeOff /> : <HiEyeShow />}
+                        </button>
+                      </div>
+                      <div className={`password-strength ${passwordStrength}`}>
+                        {formData.password && (
+                          <>
+                            Password Strength: <strong>{passwordStrength.toUpperCase()}</strong>
+                          </>
+                        )}
+                      </div>
+                      <div className="password-requirements">
+                        <p className="text-xs font-medium mb-1">Password Requirements:</p>
+                        <ul>
+                          <li>At least 6 characters</li>
+                          <li>At least one uppercase letter</li>
+                          <li>At least one number</li>
+                        </ul>
+                      </div>
+                    </div>
+
+                    <div className="form-group">
+                      <label className="form-label">Confirm Password *</label>
+                      <div className="password-input-group">
+                        <input 
+                          type={showConfirmPassword ? "text" : "password"}
+                          name="confirmPassword"
+                          className="form-input" 
+                          value={formData.confirmPassword}
+                          onChange={handleInputChange}
+                          placeholder="Confirm password"
+                          required={!selectedRole}
+                        />
+                        <button 
+                          type="button" 
+                          className="toggle-password"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        >
+                          {showConfirmPassword ? <HiEyeOff /> : <HiEyeShow />}
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                )}
+
                 <div className="form-group">
                   <label className="form-label">Status</label>
                   <select 
@@ -715,7 +941,7 @@ const RoleManagement = () => {
                     className="btn btn-primary"
                     disabled={selectedRole && selectedRole.name === 'Super Admin'}
                   >
-                    {selectedRole ? 'Update Role' : 'Create Role'}
+                    {selectedRole ? 'Update Role' : 'Create Role & Admin User'}
                   </button>
                 </div>
               </form>
