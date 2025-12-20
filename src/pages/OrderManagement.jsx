@@ -50,7 +50,14 @@ import {
   HiLockClosed,
   HiUserAdd,
   HiUserRemove,
-  HiCog
+  HiCog,
+  HiBeaker,
+  HiShieldExclamation,
+  HiReceiptRefund,
+  // Removed: HiMedicalServices, HiPrescription (not available in react-icons/hi)
+  // Using available alternatives
+  HiHeart, // For medical/health icon
+  HiBadgeCheck // For prescription/verification icon
 } from 'react-icons/hi';
 import Table from '../components/common/Table';
 import Modal from '../components/common/Modal';
@@ -81,20 +88,26 @@ const OrderManagement = () => {
     criticalAlerts: 3
   });
 
-  // Orders data
+  // Orders data - Updated for pharmacy/medicine orders
   const [orders, setOrders] = useState([
     {
-      id: 'ORD-2024-7842',
+      id: 'MED-2024-7842',
       customer: {
         name: 'Rahul Sharma',
         phone: '+91 9876543210',
-        address: 'Koramangala 4th Block, Bangalore'
+        address: 'Koramangala 4th Block, Bangalore',
+        age: 45,
+        gender: 'Male',
+        allergies: 'None',
+        medicalConditions: 'Diabetes Type 2'
       },
-      vendor: {
-        name: 'FreshMart Superstore',
-        id: 'VEN-001',
+      pharmacy: {
+        name: 'MediQuick Pharmacy',
+        id: 'PHARM-001',
         phone: '+91 9876543222',
-        rating: 4.5
+        rating: 4.5,
+        license: 'PH123456789',
+        address: 'MG Road, Bangalore'
       },
       rider: {
         name: 'Amit Kumar',
@@ -103,11 +116,19 @@ const OrderManagement = () => {
         rating: 4.8
       },
       items: [
-        { name: 'Organic Apples', quantity: 2, price: 120 },
-        { name: 'Milk 1L', quantity: 1, price: 60 },
-        { name: 'Whole Wheat Bread', quantity: 1, price: 45 },
-        { name: 'Eggs (Dozen)', quantity: 1, price: 90 }
+        { name: 'Metformin 500mg', quantity: 2, price: 120, type: 'Tablet', brand: 'Generic', prescriptionRequired: true, expiryDate: '2025-12-31' },
+        { name: 'Insulin Syringes', quantity: 1, price: 60, type: 'Medical Device', brand: 'BD', prescriptionRequired: false, expiryDate: '2026-06-30' },
+        { name: 'Blood Glucose Strips', quantity: 1, price: 45, type: 'Diagnostic', brand: 'Accu-Chek', prescriptionRequired: false, expiryDate: '2025-09-30' },
+        { name: 'Vitamin D3 1000IU', quantity: 1, price: 90, type: 'Supplement', brand: 'Becosules', prescriptionRequired: false, expiryDate: '2025-11-30' }
       ],
+      prescription: {
+        doctorName: 'Dr. Anil Mehta',
+        licenseNumber: 'MED12345',
+        date: '2024-01-20',
+        validity: '30 days',
+        fileUrl: '/prescriptions/prescription-001.pdf',
+        verified: true
+      },
       totalAmount: 315,
       discount: 15,
       deliveryFee: 30,
@@ -121,9 +142,11 @@ const OrderManagement = () => {
       estimatedDelivery: '30-40 min',
       actualDeliveryTime: '35 min',
       notes: 'Leave at door if not home',
+      specialInstructions: 'Keep medicines in cool place',
       tracking: [
-        { time: '14:30', status: 'Order Placed', description: 'Order confirmed by vendor' },
-        { time: '14:45', status: 'Preparing', description: 'Vendor is preparing your order' },
+        { time: '14:30', status: 'Order Placed', description: 'Order confirmed by pharmacy' },
+        { time: '14:45', status: 'Verification', description: 'Prescription verification in progress' },
+        { time: '15:00', status: 'Processing', description: 'Pharmacist is preparing your order' },
         { time: '15:15', status: 'Ready for Pickup', description: 'Order is ready for rider pickup' },
         { time: '15:30', status: 'Picked Up', description: 'Rider picked up the order' },
         { time: '16:15', status: 'On the Way', description: 'Rider is on the way to deliver' },
@@ -131,20 +154,26 @@ const OrderManagement = () => {
       ],
       issues: [],
       commission: 15.75,
-      vendorEarnings: 299.25
+      pharmacyEarnings: 299.25
     },
     {
-      id: 'ORD-2024-7841',
+      id: 'MED-2024-7841',
       customer: {
         name: 'Priya Patel',
         phone: '+91 9876543211',
-        address: 'Indiranagar, Bangalore'
+        address: 'Indiranagar, Bangalore',
+        age: 32,
+        gender: 'Female',
+        allergies: 'Penicillin',
+        medicalConditions: 'Asthma'
       },
-      vendor: {
-        name: 'Foodie Delights',
-        id: 'VEN-002',
+      pharmacy: {
+        name: 'HealthCare Pharmacy',
+        id: 'PHARM-002',
         phone: '+91 9876543223',
-        rating: 4.2
+        rating: 4.2,
+        license: 'PH987654321',
+        address: 'Indiranagar, Bangalore'
       },
       rider: {
         name: 'Rajesh Verma',
@@ -153,10 +182,18 @@ const OrderManagement = () => {
         rating: 4.6
       },
       items: [
-        { name: 'Chicken Biryani', quantity: 2, price: 240 },
-        { name: 'Butter Naan', quantity: 4, price: 80 },
-        { name: 'Raita', quantity: 1, price: 40 }
+        { name: 'Salbutamol Inhaler', quantity: 2, price: 240, type: 'Inhaler', brand: 'Asthalin', prescriptionRequired: true, expiryDate: '2025-08-31' },
+        { name: 'Montelukast 10mg', quantity: 1, price: 80, type: 'Tablet', brand: 'Montair', prescriptionRequired: true, expiryDate: '2025-10-31' },
+        { name: 'Cetirizine 10mg', quantity: 1, price: 40, type: 'Tablet', brand: 'Cetrizine', prescriptionRequired: false, expiryDate: '2025-07-31' }
       ],
+      prescription: {
+        doctorName: 'Dr. Sunita Reddy',
+        licenseNumber: 'MED67890',
+        date: '2024-01-22',
+        validity: '45 days',
+        fileUrl: '/prescriptions/prescription-002.pdf',
+        verified: true
+      },
       totalAmount: 360,
       discount: 0,
       deliveryFee: 25,
@@ -170,29 +207,37 @@ const OrderManagement = () => {
       estimatedDelivery: '40-50 min',
       actualDeliveryTime: null,
       notes: 'Call before delivery',
+      specialInstructions: 'Keep inhaler at room temperature',
       tracking: [
-        { time: '15:00', status: 'Order Placed', description: 'Order confirmed by vendor' },
-        { time: '15:15', status: 'Preparing', description: 'Vendor is preparing your order' },
+        { time: '15:00', status: 'Order Placed', description: 'Order confirmed by pharmacy' },
+        { time: '15:15', status: 'Verification', description: 'Prescription verification completed' },
+        { time: '15:30', status: 'Processing', description: 'Pharmacist is preparing your order' },
         { time: '15:45', status: 'Ready for Pickup', description: 'Order is ready for rider pickup' },
         { time: '16:00', status: 'Picked Up', description: 'Rider picked up the order' },
         { time: '16:20', status: 'On the Way', description: 'Rider is on the way to deliver' }
       ],
       issues: [],
       commission: 19.25,
-      vendorEarnings: 365.75
+      pharmacyEarnings: 365.75
     },
     {
-      id: 'ORD-2024-7840',
+      id: 'MED-2024-7840',
       customer: {
         name: 'Arjun Singh',
         phone: '+91 9876543212',
-        address: 'Whitefield, Bangalore'
+        address: 'Whitefield, Bangalore',
+        age: 65,
+        gender: 'Male',
+        allergies: 'Sulfa Drugs',
+        medicalConditions: 'Hypertension, Arthritis'
       },
-      vendor: {
-        name: 'MediQuick Pharmacy',
-        id: 'VEN-003',
+      pharmacy: {
+        name: 'LifeCare Pharmacy',
+        id: 'PHARM-003',
         phone: '+91 9876543224',
-        rating: 4.7
+        rating: 4.7,
+        license: 'PH456789123',
+        address: 'Whitefield, Bangalore'
       },
       rider: {
         name: 'Suresh Reddy',
@@ -201,14 +246,23 @@ const OrderManagement = () => {
         rating: 4.9
       },
       items: [
-        { name: 'Paracetamol 500mg', quantity: 1, price: 25 },
-        { name: 'Vitamin C Tablets', quantity: 1, price: 150 },
-        { name: 'Hand Sanitizer', quantity: 1, price: 99 }
+        { name: 'Losartan 50mg', quantity: 1, price: 25, type: 'Tablet', brand: 'Losar', prescriptionRequired: true, expiryDate: '2025-05-31' },
+        { name: 'Vitamin C 1000mg', quantity: 1, price: 150, type: 'Tablet', brand: 'Limcee', prescriptionRequired: false, expiryDate: '2025-08-31' },
+        { name: 'Hand Sanitizer 500ml', quantity: 1, price: 99, type: 'Personal Care', brand: 'Dettol', prescriptionRequired: false, expiryDate: '2026-01-31' },
+        { name: 'Blood Pressure Monitor', quantity: 1, price: 1200, type: 'Medical Device', brand: 'Omron', prescriptionRequired: false, expiryDate: '2028-12-31' }
       ],
-      totalAmount: 274,
+      prescription: {
+        doctorName: 'Dr. Ravi Kumar',
+        licenseNumber: 'MED24680',
+        date: '2024-01-21',
+        validity: '60 days',
+        fileUrl: '/prescriptions/prescription-003.pdf',
+        verified: true
+      },
+      totalAmount: 1474,
       discount: 10,
       deliveryFee: 40,
-      finalAmount: 304,
+      finalAmount: 1504,
       status: 'pending',
       priority: 'critical',
       paymentMethod: 'Cash on Delivery',
@@ -218,26 +272,33 @@ const OrderManagement = () => {
       estimatedDelivery: '20-30 min',
       actualDeliveryTime: null,
       notes: 'Urgent medication delivery',
+      specialInstructions: 'Patient is elderly, need assistance',
       tracking: [
-        { time: '16:00', status: 'Order Placed', description: 'Order confirmed by vendor' },
-        { time: '16:05', status: 'Preparing', description: 'Vendor is preparing your order' }
+        { time: '16:00', status: 'Order Placed', description: 'Order confirmed by pharmacy' },
+        { time: '16:05', status: 'Verification', description: 'Prescription verification in progress' }
       ],
-      issues: ['Vendor is out of stock for Vitamin C'],
-      commission: 15.2,
-      vendorEarnings: 288.8
+      issues: ['Stock shortage for Vitamin C 1000mg', 'Alternative offered'],
+      commission: 75.2,
+      pharmacyEarnings: 1428.8
     },
     {
-      id: 'ORD-2024-7839',
+      id: 'MED-2024-7839',
       customer: {
         name: 'Neha Gupta',
         phone: '+91 9876543213',
-        address: 'Jayanagar, Bangalore'
+        address: 'Jayanagar, Bangalore',
+        age: 28,
+        gender: 'Female',
+        allergies: 'None',
+        medicalConditions: 'Migraine'
       },
-      vendor: {
-        name: 'ElectroHub',
-        id: 'VEN-004',
+      pharmacy: {
+        name: 'Wellness Pharmacy',
+        id: 'PHARM-004',
         phone: '+91 9876543225',
-        rating: 4.3
+        rating: 4.3,
+        license: 'PH789123456',
+        address: 'Jayanagar, Bangalore'
       },
       rider: {
         name: 'Anil Verma',
@@ -246,13 +307,21 @@ const OrderManagement = () => {
         rating: 4.4
       },
       items: [
-        { name: 'Bluetooth Headphones', quantity: 1, price: 1499 },
-        { name: 'Phone Case', quantity: 1, price: 299 }
+        { name: 'Sumatriptan 50mg', quantity: 1, price: 149, type: 'Tablet', brand: 'Suminat', prescriptionRequired: true, expiryDate: '2025-03-31' },
+        { name: 'Migraine Relief Oil', quantity: 1, price: 299, type: 'Ayurvedic', brand: 'Zandu', prescriptionRequired: false, expiryDate: '2025-06-30' }
       ],
-      totalAmount: 1798,
+      prescription: {
+        doctorName: 'Dr. Meena Sharma',
+        licenseNumber: 'MED13579',
+        date: '2024-01-19',
+        validity: '30 days',
+        fileUrl: '/prescriptions/prescription-004.pdf',
+        verified: true
+      },
+      totalAmount: 448,
       discount: 100,
       deliveryFee: 50,
-      finalAmount: 1748,
+      finalAmount: 398,
       status: 'cancelled',
       priority: 'normal',
       paymentMethod: 'Credit Card',
@@ -261,28 +330,35 @@ const OrderManagement = () => {
       deliveryDate: null,
       estimatedDelivery: '60-90 min',
       actualDeliveryTime: null,
-      notes: 'Fragile item',
+      notes: 'Fragile item - migraine oil',
+      specialInstructions: null,
       tracking: [
-        { time: '13:00', status: 'Order Placed', description: 'Order confirmed by vendor' },
-        { time: '13:30', status: 'Preparing', description: 'Vendor is preparing your order' },
+        { time: '13:00', status: 'Order Placed', description: 'Order confirmed by pharmacy' },
+        { time: '13:30', status: 'Verification', description: 'Prescription verification completed' },
         { time: '14:00', status: 'Cancelled', description: 'Order cancelled by customer' }
       ],
       issues: ['Customer changed mind'],
       commission: 0,
-      vendorEarnings: 0
+      pharmacyEarnings: 0
     },
     {
-      id: 'ORD-2024-7838',
+      id: 'MED-2024-7838',
       customer: {
         name: 'Sanjay Kumar',
         phone: '+91 9876543214',
-        address: 'BTM Layout, Bangalore'
+        address: 'BTM Layout, Bangalore',
+        age: 52,
+        gender: 'Male',
+        allergies: 'Iodine',
+        medicalConditions: 'Thyroid Disorder'
       },
-      vendor: {
-        name: 'BookWorm Store',
-        id: 'VEN-005',
-        phone: '+91 9876543226',
-        rating: 4.6
+      pharmacy: {
+        name: 'MediQuick Pharmacy',
+        id: 'PHARM-001',
+        phone: '+91 9876543222',
+        rating: 4.6,
+        license: 'PH123456789',
+        address: 'MG Road, Bangalore'
       },
       rider: {
         name: 'Vikram Singh',
@@ -291,14 +367,22 @@ const OrderManagement = () => {
         rating: 4.7
       },
       items: [
-        { name: 'React Programming Guide', quantity: 1, price: 450 },
-        { name: 'JavaScript Essentials', quantity: 1, price: 350 },
-        { name: 'Web Development', quantity: 1, price: 550 }
+        { name: 'Thyroxine 100mcg', quantity: 1, price: 150, type: 'Tablet', brand: 'Thyronorm', prescriptionRequired: true, expiryDate: '2025-04-30' },
+        { name: 'Multivitamin Tablets', quantity: 1, price: 350, type: 'Supplement', brand: 'Supradyn', prescriptionRequired: false, expiryDate: '2025-09-30' },
+        { name: 'Thermometer Digital', quantity: 1, price: 250, type: 'Medical Device', brand: 'Dr. Morepen', prescriptionRequired: false, expiryDate: '2027-12-31' }
       ],
-      totalAmount: 1350,
+      prescription: {
+        doctorName: 'Dr. Anil Mehta',
+        licenseNumber: 'MED12345',
+        date: '2024-01-18',
+        validity: '90 days',
+        fileUrl: '/prescriptions/prescription-005.pdf',
+        verified: true
+      },
+      totalAmount: 750,
       discount: 150,
       deliveryFee: 30,
-      finalAmount: 1230,
+      finalAmount: 630,
       status: 'delivered',
       priority: 'normal',
       paymentMethod: 'UPI',
@@ -308,16 +392,18 @@ const OrderManagement = () => {
       estimatedDelivery: '60-75 min',
       actualDeliveryTime: '75 min',
       notes: 'Deliver to reception',
+      specialInstructions: 'Store thyroxine in refrigerator',
       tracking: [
-        { time: '12:00', status: 'Order Placed', description: 'Order confirmed by vendor' },
-        { time: '12:15', status: 'Preparing', description: 'Vendor is preparing your order' },
+        { time: '12:00', status: 'Order Placed', description: 'Order confirmed by pharmacy' },
+        { time: '12:15', status: 'Verification', description: 'Prescription verification completed' },
+        { time: '12:30', status: 'Processing', description: 'Pharmacist is preparing your order' },
         { time: '12:45', status: 'Ready for Pickup', description: 'Order is ready for rider pickup' },
         { time: '13:00', status: 'Picked Up', description: 'Rider picked up the order' },
         { time: '13:15', status: 'Delivered', description: 'Order delivered successfully' }
       ],
       issues: [],
-      commission: 61.5,
-      vendorEarnings: 1168.5
+      commission: 31.5,
+      pharmacyEarnings: 598.5
     }
   ]);
 
@@ -326,57 +412,63 @@ const OrderManagement = () => {
     {
       id: 1,
       type: 'critical',
-      title: 'Critical Order Delayed',
-      description: 'ORD-2024-7840 - Medication delivery delayed by 45 minutes',
-      orderId: 'ORD-2024-7840',
+      title: 'Critical Medicine Order Delayed',
+      description: 'MED-2024-7840 - Cardiac medication delayed by 45 minutes',
+      orderId: 'MED-2024-7840',
       time: '10 minutes ago'
     },
     {
       id: 2,
       type: 'warning',
-      title: 'Payment Issue',
-      description: 'ORD-2024-7841 - Payment verification pending for ₹385',
-      orderId: 'ORD-2024-7841',
+      title: 'Prescription Verification Pending',
+      description: 'MED-2024-7841 - Prescription requires doctor verification',
+      orderId: 'MED-2024-7841',
       time: '25 minutes ago'
     },
     {
       id: 3,
       type: 'warning',
-      title: 'Rider Running Late',
-      description: 'Rider Rajesh Verma is 20 minutes behind schedule',
-      orderId: 'ORD-2024-7841',
+      title: 'Temperature Sensitive Medicine',
+      description: 'Order contains insulin that requires refrigeration',
+      orderId: 'MED-2024-7838',
       time: '35 minutes ago'
     }
   ]);
 
-  // Vendor quick stats
-  const [vendorStats, setVendorStats] = useState([
+  // Pharmacy quick stats
+  const [pharmacyStats, setPharmacyStats] = useState([
     {
-      id: 'VEN-001',
-      name: 'FreshMart Superstore',
+      id: 'PHARM-001',
+      name: 'MediQuick Pharmacy',
       ordersToday: 45,
       avgRating: 4.5,
       successRate: '98%',
       commission: '₹6,450',
-      revenue: '₹42,150'
+      revenue: '₹42,150',
+      licenseStatus: 'Active',
+      verified: true
     },
     {
-      id: 'VEN-002',
-      name: 'Foodie Delights',
+      id: 'PHARM-002',
+      name: 'HealthCare Pharmacy',
       ordersToday: 32,
       avgRating: 4.2,
       successRate: '95%',
       commission: '₹4,850',
-      revenue: '₹31,250'
+      revenue: '₹31,250',
+      licenseStatus: 'Active',
+      verified: true
     },
     {
-      id: 'VEN-003',
-      name: 'MediQuick Pharmacy',
+      id: 'PHARM-003',
+      name: 'LifeCare Pharmacy',
       ordersToday: 28,
       avgRating: 4.7,
       successRate: '99%',
       commission: '₹3,980',
-      revenue: '₹26,520'
+      revenue: '₹26,520',
+      licenseStatus: 'Active',
+      verified: true
     }
   ]);
 
@@ -393,19 +485,19 @@ const OrderManagement = () => {
     },
     {
       id: 2,
-      name: 'Support Manager',
-      email: 'support@example.com',
-      role: 'Support',
-      permissions: 'Order Management, Customer Support',
+      name: 'Pharmacy Manager',
+      email: 'pharmacy@example.com',
+      role: 'Pharmacy Support',
+      permissions: 'Order Management, Prescription Verification',
       status: 'active',
       lastActive: '2024-01-23 15:30'
     },
     {
       id: 3,
-      name: 'Finance Manager',
-      email: 'finance@example.com',
-      role: 'Finance',
-      permissions: 'Payment Processing, Refunds',
+      name: 'Medical Supervisor',
+      email: 'medical@example.com',
+      role: 'Medical',
+      permissions: 'Prescription Approval, Medicine Verification',
       status: 'active',
       lastActive: '2024-01-23 14:15'
     }
@@ -467,24 +559,24 @@ const OrderManagement = () => {
     openModal('contactCustomer', order);
   };
 
-  const handleContactVendor = (order) => {
-    openModal('contactVendor', order);
+  const handleContactPharmacy = (order) => {
+    openModal('contactPharmacy', order);
   };
 
   const handleContactRider = (order) => {
     openModal('contactRider', order);
   };
 
-  const handleViewVendor = (vendor) => {
-    openModal('vendorDetails', vendor);
+  const handleViewPharmacy = (pharmacy) => {
+    openModal('pharmacyDetails', pharmacy);
   };
 
   const handleManageUsers = () => {
     openModal('usersManagement');
   };
 
-  const handleAddVendor = () => {
-    openModal('addVendor');
+  const handleAddPharmacy = () => {
+    openModal('addPharmacy');
   };
 
   const handleExportOrders = () => {
@@ -515,6 +607,16 @@ const OrderManagement = () => {
     showNotification(`Order ${orderId} priority updated to ${newPriority}`, 'success');
   };
 
+  const handleVerifyPrescription = (orderId) => {
+    setOrders(orders.map(order => 
+      order.id === orderId ? { 
+        ...order, 
+        prescription: { ...order.prescription, verified: true } 
+      } : order
+    ));
+    showNotification(`Prescription for ${orderId} verified successfully`, 'success');
+  };
+
   // Filter orders based on search and filters
   const getFilteredOrders = () => {
     let filtered = orders;
@@ -525,7 +627,7 @@ const OrderManagement = () => {
         order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
         order.customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         order.customer.phone.includes(searchTerm) ||
-        order.vendor.name.toLowerCase().includes(searchTerm.toLowerCase())
+        order.pharmacy.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
@@ -569,18 +671,22 @@ const OrderManagement = () => {
         <div>
           <div className="font-medium text-dark">{order.customer.name}</div>
           <div className="text-xs text-soft">{order.customer.phone}</div>
+          <div className="text-xs text-info">{order.customer.age} yrs, {order.customer.gender}</div>
         </div>
       )
     },
     { 
-      key: 'vendor.name', 
-      label: 'Vendor',
+      key: 'pharmacy.name', 
+      label: 'Pharmacy',
       render: (_, order) => (
         <div>
-          <div className="font-medium text-dark">{order.vendor.name}</div>
+          <div className="font-medium text-dark">{order.pharmacy.name}</div>
           <div className="flex items-center gap-1 text-xs">
             <HiStar className="text-warning" />
-            <span className="text-soft">{order.vendor.rating}</span>
+            <span className="text-soft">{order.pharmacy.rating}</span>
+            {order.prescription.verified && (
+              <HiShieldCheck className="text-success ml-2" title="Prescription Verified" />
+            )}
           </div>
         </div>
       )
@@ -613,6 +719,8 @@ const OrderManagement = () => {
       render: (status) => {
         const statusConfig = {
           pending: { label: 'Pending', color: 'warning', bg: 'bg-warning/10', text: 'text-warning' },
+          verification: { label: 'Verification', color: 'info', bg: 'bg-info/10', text: 'text-info' },
+          processing: { label: 'Processing', color: 'info', bg: 'bg-info/10', text: 'text-info' },
           in_transit: { label: 'In Transit', color: 'info', bg: 'bg-info/10', text: 'text-info' },
           delivered: { label: 'Delivered', color: 'success', bg: 'bg-success/10', text: 'text-success' },
           cancelled: { label: 'Cancelled', color: 'error', bg: 'bg-error/10', text: 'text-error' }
@@ -624,6 +732,8 @@ const OrderManagement = () => {
             {status === 'in_transit' && <HiTruck className="w-3 h-3" />}
             {status === 'pending' && <HiClock className="w-3 h-3" />}
             {status === 'cancelled' && <HiXCircle className="w-3 h-3" />}
+            {status === 'verification' && <HiDocumentText className="w-3 h-3" />}
+            {status === 'processing' && <HiBeaker className="w-3 h-3" />}
             {config.label}
           </span>
         );
@@ -680,12 +790,30 @@ const OrderManagement = () => {
               </button>
               <button 
                 className="btn-icon"
-                onClick={() => handleUpdateOrderStatus(order.id, 'in_transit')}
-                title="Mark as In Transit"
+                onClick={() => handleUpdateOrderStatus(order.id, 'verification')}
+                title="Start Prescription Verification"
               >
-                <HiTruck />
+                <HiDocumentText />
               </button>
             </>
+          )}
+          {order.status === 'verification' && !order.prescription.verified && (
+            <button 
+              className="btn-icon"
+              onClick={() => handleVerifyPrescription(order.id)}
+              title="Verify Prescription"
+            >
+              <HiCheckCircle />
+            </button>
+          )}
+          {order.status === 'processing' && (
+            <button 
+              className="btn-icon"
+              onClick={() => handleUpdateOrderStatus(order.id, 'in_transit')}
+              title="Mark as In Transit"
+            >
+              <HiTruck />
+            </button>
           )}
           {order.status === 'in_transit' && (
             <button 
@@ -696,7 +824,7 @@ const OrderManagement = () => {
               <HiCheckCircle />
             </button>
           )}
-          {(order.status === 'pending' || order.status === 'in_transit') && (
+          {(order.status === 'pending' || order.status === 'verification' || order.status === 'processing') && (
             <button 
               className="btn-icon"
               onClick={() => handleCancelOrder(order)}
@@ -753,44 +881,55 @@ const OrderManagement = () => {
     </div>
   );
 
-  // Vendor Stat Card Component
-  const VendorStatCard = ({ vendor }) => (
-    <div className="vendor-stat-card">
-      <div className="vendor-stat-header">
-        <h4>{vendor.name}</h4>
-        <span className="text-xs text-soft">{vendor.id}</span>
+  // Pharmacy Stat Card Component
+  const PharmacyStatCard = ({ pharmacy }) => (
+    <div className="pharmacy-stat-card">
+      <div className="pharmacy-stat-header">
+        <h4>{pharmacy.name}</h4>
+        <div className="flex flex-col items-end gap-1">
+          <span className="text-xs text-soft">{pharmacy.id}</span>
+          <span className={`text-xs px-2 py-1 rounded-full ${pharmacy.verified ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'}`}>
+            {pharmacy.verified ? '✓ Verified' : 'Pending Verification'}
+          </span>
+        </div>
       </div>
-      <div className="vendor-stat-body">
+      <div className="pharmacy-stat-body">
         <div className="stat-row">
           <span>Orders Today:</span>
-          <strong>{vendor.ordersToday}</strong>
+          <strong>{pharmacy.ordersToday}</strong>
         </div>
         <div className="stat-row">
           <span>Avg Rating:</span>
           <div className="rating">
             <HiStar />
-            <span>{vendor.avgRating}</span>
+            <span>{pharmacy.avgRating}</span>
           </div>
         </div>
         <div className="stat-row">
           <span>Success Rate:</span>
-          <span className="success-rate">{vendor.successRate}</span>
+          <span className="success-rate">{pharmacy.successRate}</span>
         </div>
         <div className="stat-row">
           <span>Commission:</span>
-          <strong className="revenue">{vendor.commission}</strong>
+          <strong className="revenue">{pharmacy.commission}</strong>
         </div>
         <div className="stat-row">
           <span>Revenue:</span>
-          <strong className="revenue">{vendor.revenue}</strong>
+          <strong className="revenue">{pharmacy.revenue}</strong>
         </div>
       </div>
-      <div className="flex justify-end mt-3">
+      <div className="flex justify-end mt-3 gap-2">
         <button 
           className="btn btn-sm btn-outline"
-          onClick={() => handleViewVendor(vendor)}
+          onClick={() => handleViewPharmacy(pharmacy)}
         >
           View Details
+        </button>
+        <button 
+          className="btn btn-sm btn-outline"
+          onClick={() => openModal('contactPharmacy', pharmacy)}
+        >
+          <HiPhone /> Call
         </button>
       </div>
     </div>
@@ -835,15 +974,19 @@ const OrderManagement = () => {
         return (
           <div className="order-details-modal">
             <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-              <HiClipboardList /> Order Details - {modalData?.id}
+              <HiHeart /> Medicine Order Details - {modalData?.id}
             </h3>
             
             <div className="order-info-grid">
               <div className="info-section">
-                <h4><HiUser /> Customer Information</h4>
+                <h4><HiUser /> Patient Information</h4>
                 <div className="info-item">
                   <label>Name:</label>
                   <span>{modalData?.customer.name}</span>
+                </div>
+                <div className="info-item">
+                  <label>Age/Gender:</label>
+                  <span>{modalData?.customer.age} yrs, {modalData?.customer.gender}</span>
                 </div>
                 <div className="info-item">
                   <label>Phone:</label>
@@ -854,57 +997,81 @@ const OrderManagement = () => {
                   <span>{modalData?.customer.address}</span>
                 </div>
                 <div className="info-item">
-                  <label>Notes:</label>
-                  <span>{modalData?.notes || 'No notes'}</span>
+                  <label>Allergies:</label>
+                  <span className={modalData?.customer.allergies !== 'None' ? 'text-error font-semibold' : ''}>
+                    {modalData?.customer.allergies}
+                  </span>
+                </div>
+                <div className="info-item">
+                  <label>Medical Conditions:</label>
+                  <span>{modalData?.customer.medicalConditions}</span>
                 </div>
               </div>
 
               <div className="info-section">
-                <h4><HiShoppingBag /> Vendor Information</h4>
+                <h4><HiShoppingBag /> Pharmacy Information</h4>
                 <div className="info-item">
                   <label>Name:</label>
-                  <span>{modalData?.vendor.name}</span>
+                  <span>{modalData?.pharmacy.name}</span>
+                </div>
+                <div className="info-item">
+                  <label>License:</label>
+                  <span>{modalData?.pharmacy.license}</span>
                 </div>
                 <div className="info-item">
                   <label>Rating:</label>
                   <span className="rating">
-                    <HiStar /> {modalData?.vendor.rating}
+                    <HiStar /> {modalData?.pharmacy.rating}
                   </span>
                 </div>
                 <div className="info-item">
                   <label>Phone:</label>
-                  <span>{modalData?.vendor.phone}</span>
+                  <span>{modalData?.pharmacy.phone}</span>
                 </div>
                 <div className="info-item">
-                  <label>ID:</label>
-                  <span>{modalData?.vendor.id}</span>
+                  <label>Address:</label>
+                  <span>{modalData?.pharmacy.address}</span>
                 </div>
               </div>
 
               <div className="info-section">
-                <h4><HiTruck /> Rider Information</h4>
+                <h4><HiBadgeCheck /> Prescription Details</h4>
                 <div className="info-item">
-                  <label>Name:</label>
+                  <label>Doctor:</label>
+                  <span>{modalData?.prescription.doctorName}</span>
+                </div>
+                <div className="info-item">
+                  <label>License No:</label>
+                  <span>{modalData?.prescription.licenseNumber}</span>
+                </div>
+                <div className="info-item">
+                  <label>Date:</label>
+                  <span>{new Date(modalData?.prescription.date).toLocaleDateString()}</span>
+                </div>
+                <div className="info-item">
+                  <label>Validity:</label>
+                  <span>{modalData?.prescription.validity}</span>
+                </div>
+                <div className="info-item">
+                  <label>Status:</label>
+                  <span className={`status-badge ${modalData?.prescription.verified ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'}`}>
+                    {modalData?.prescription.verified ? 'Verified' : 'Pending Verification'}
+                  </span>
+                </div>
+                <div className="info-item">
+                  <label>File:</label>
+                  <a href={modalData?.prescription.fileUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                    View Prescription
+                  </a>
+                </div>
+              </div>
+
+              <div className="info-section">
+                <h4><HiTruck /> Delivery Information</h4>
+                <div className="info-item">
+                  <label>Rider:</label>
                   <span>{modalData?.rider?.name || 'Not assigned'}</span>
                 </div>
-                <div className="info-item">
-                  <label>Rating:</label>
-                  <span className="rating">
-                    <HiStar /> {modalData?.rider?.rating || 'N/A'}
-                  </span>
-                </div>
-                <div className="info-item">
-                  <label>Phone:</label>
-                  <span>{modalData?.rider?.phone || 'N/A'}</span>
-                </div>
-                <div className="info-item">
-                  <label>ID:</label>
-                  <span>{modalData?.rider?.id || 'N/A'}</span>
-                </div>
-              </div>
-
-              <div className="info-section">
-                <h4><HiCreditCard /> Order Information</h4>
                 <div className="info-item">
                   <label>Status:</label>
                   <span className={`status-badge status-${modalData?.status}`}>
@@ -922,78 +1089,130 @@ const OrderManagement = () => {
                   <span>{modalData?.paymentMethod} ({modalData?.paymentStatus})</span>
                 </div>
                 <div className="info-item">
-                  <label>Order Time:</label>
-                  <span>{new Date(modalData?.orderDate).toLocaleString()}</span>
+                  <label>Special Instructions:</label>
+                  <span>{modalData?.specialInstructions || 'None'}</span>
                 </div>
               </div>
             </div>
 
             <div className="order-items-section">
-              <h4>Order Items</h4>
+              <h4>Medicine Items</h4>
               <table className="items-table">
                 <thead>
                   <tr>
-                    <th>Item</th>
-                    <th>Quantity</th>
+                    <th>Medicine Name</th>
+                    <th>Type</th>
+                    <th>Brand</th>
+                    <th>Qty</th>
                     <th>Price</th>
+                    <th>Prescription</th>
+                    <th>Expiry</th>
                     <th>Total</th>
                   </tr>
                 </thead>
                 <tbody>
                   {modalData?.items.map((item, index) => (
-                    <tr key={index}>
-                      <td>{item.name}</td>
+                    <tr key={index} className={item.prescriptionRequired ? 'bg-blue-50' : ''}>
+                      <td>
+                        <div className="font-medium">{item.name}</div>
+                        {item.prescriptionRequired && (
+                          <span className="text-xs text-warning flex items-center gap-1">
+                            <HiBadgeCheck /> Prescription Required
+                          </span>
+                        )}
+                      </td>
+                      <td>
+                        <span className={`px-2 py-1 rounded-full text-xs ${getMedicineTypeClass(item.type)}`}>
+                          {item.type}
+                        </span>
+                      </td>
+                      <td>{item.brand}</td>
                       <td>{item.quantity}</td>
                       <td>₹{item.price}</td>
-                      <td>₹{item.quantity * item.price}</td>
+                      <td>
+                        {item.prescriptionRequired ? (
+                          <HiCheckCircle className="text-success" />
+                        ) : (
+                          <HiXCircle className="text-soft" />
+                        )}
+                      </td>
+                      <td className={new Date(item.expiryDate) < new Date() ? 'text-error font-semibold' : ''}>
+                        {new Date(item.expiryDate).toLocaleDateString()}
+                      </td>
+                      <td className="font-medium">₹{item.quantity * item.price}</td>
                     </tr>
                   ))}
                   <tr className="total-row">
-                    <td colSpan="3" className="text-right">Subtotal:</td>
-                    <td>₹{modalData?.totalAmount}</td>
+                    <td colSpan="7" className="text-right">Subtotal:</td>
+                    <td className="font-medium">₹{modalData?.totalAmount}</td>
                   </tr>
                   <tr>
-                    <td colSpan="3" className="text-right">Discount:</td>
+                    <td colSpan="7" className="text-right">Discount:</td>
                     <td className="text-success">-₹{modalData?.discount}</td>
                   </tr>
                   <tr>
-                    <td colSpan="3" className="text-right">Delivery Fee:</td>
+                    <td colSpan="7" className="text-right">Delivery Fee:</td>
                     <td>₹{modalData?.deliveryFee}</td>
                   </tr>
                   <tr className="total-row">
-                    <td colSpan="3" className="text-right font-bold">Total Amount:</td>
+                    <td colSpan="7" className="text-right font-bold">Total Amount:</td>
                     <td className="font-bold text-success">₹{modalData?.finalAmount}</td>
                   </tr>
                 </tbody>
               </table>
             </div>
 
+            <div className="tracking-section mt-6">
+              <h4>Order Tracking</h4>
+              <div className="timeline">
+                {modalData?.tracking.map((track, index) => (
+                  <div key={index} className="timeline-item">
+                    <div className="timeline-marker"></div>
+                    <div className="timeline-content">
+                      <div className="timeline-time">{track.time}</div>
+                      <div className="timeline-title">{track.status}</div>
+                      <div className="timeline-description">{track.description}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             <div className="form-actions">
               <button className="btn btn-outline" onClick={closeModal}>Close</button>
+              {!modalData?.prescription.verified && (
+                <button className="btn btn-warning" onClick={() => handleVerifyPrescription(modalData?.id)}>
+                  <HiCheckCircle /> Verify Prescription
+                </button>
+              )}
               <button className="btn btn-primary" onClick={() => handleContactCustomer(modalData)}>
-                <HiPhone /> Contact Customer
+                <HiPhone /> Contact Patient
               </button>
             </div>
           </div>
         );
 
-      case 'vendorDetails':
+      case 'pharmacyDetails':
         return (
-          <div className="vendor-details-modal">
+          <div className="pharmacy-details-modal">
             <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-              <HiShoppingBag /> Vendor Details - {modalData?.name}
+              <HiShoppingBag /> Pharmacy Details - {modalData?.name}
             </h3>
             
-            <div className="vendor-info-grid">
+            <div className="pharmacy-info-grid">
               <div className="info-section">
-                <h4>Basic Information</h4>
+                <h4>Pharmacy Information</h4>
                 <div className="info-item">
-                  <label>Vendor Name:</label>
+                  <label>Pharmacy Name:</label>
                   <span>{modalData?.name}</span>
                 </div>
                 <div className="info-item">
-                  <label>Vendor ID:</label>
-                  <span>{modalData?.id}</span>
+                  <label>License Number:</label>
+                  <span className="font-mono">{modalData?.license || 'PH123456789'}</span>
+                </div>
+                <div className="info-item">
+                  <label>License Status:</label>
+                  <span className="success-rate">{modalData?.licenseStatus || 'Active'}</span>
                 </div>
                 <div className="info-item">
                   <label>Phone:</label>
@@ -1004,8 +1223,12 @@ const OrderManagement = () => {
                   <span>contact@{modalData?.name.toLowerCase().replace(/\s+/g, '')}.com</span>
                 </div>
                 <div className="info-item">
-                  <label>Category:</label>
-                  <span>Supermarket</span>
+                  <label>Address:</label>
+                  <span>MG Road, Bangalore, Karnataka 560001</span>
+                </div>
+                <div className="info-item">
+                  <label>Operating Hours:</label>
+                  <span>24/7 Emergency Services Available</span>
                 </div>
               </div>
 
@@ -1026,17 +1249,25 @@ const OrderManagement = () => {
                   </span>
                 </div>
                 <div className="info-item">
-                  <label>Avg Preparation Time:</label>
-                  <span>22 minutes</span>
+                  <label>Avg Processing Time:</label>
+                  <span>18 minutes</span>
                 </div>
                 <div className="info-item">
                   <label>Commission Rate:</label>
                   <span className="commission-rate">5%</span>
                 </div>
+                <div className="info-item">
+                  <label>Verification Success:</label>
+                  <span>99.2%</span>
+                </div>
+                <div className="info-item">
+                  <label>Pharmacist On Duty:</label>
+                  <span className="text-success">Dr. Anil Sharma (Licensed)</span>
+                </div>
               </div>
             </div>
 
-            <div className="vendor-performance-section">
+            <div className="pharmacy-performance-section">
               <h4>Detailed Performance</h4>
               <div className="metrics-grid">
                 <div className="metric-card">
@@ -1066,7 +1297,7 @@ const OrderManagement = () => {
                 <div className="metric-card">
                   <div className="metric-label">Customer Rating</div>
                   <div className="metric-value">
-                    <div className="vendor-rating">
+                    <div className="pharmacy-rating">
                       <HiStar className="star-icon" />
                       <span>{modalData?.avgRating}</span>
                     </div>
@@ -1079,10 +1310,24 @@ const OrderManagement = () => {
               </div>
             </div>
 
+            <div className="medicine-categories mt-6">
+              <h4>Medicine Categories Available</h4>
+              <div className="categories-grid">
+                <span className="category-badge">Allopathic</span>
+                <span className="category-badge">Ayurvedic</span>
+                <span className="category-badge">Homeopathic</span>
+                <span className="category-badge">Surgical</span>
+                <span className="category-badge">Diagnostic</span>
+                <span className="category-badge">Baby Care</span>
+                <span className="category-badge">Personal Care</span>
+                <span className="category-badge">Medical Devices</span>
+              </div>
+            </div>
+
             <div className="form-actions">
               <button className="btn btn-outline" onClick={closeModal}>Close</button>
-              <button className="btn btn-primary" onClick={() => handleContactVendor(modalData)}>
-                <HiPhone /> Contact Vendor
+              <button className="btn btn-primary" onClick={() => handleContactPharmacy(modalData)}>
+                <HiPhone /> Contact Pharmacy
               </button>
             </div>
           </div>
@@ -1125,9 +1370,10 @@ const OrderManagement = () => {
                     <select className="form-input" required>
                       <option value="">Select Role</option>
                       <option value="admin">Admin</option>
-                      <option value="support">Support</option>
-                      <option value="finance">Finance</option>
-                      <option value="operations">Operations</option>
+                      <option value="pharmacy_support">Pharmacy Support</option>
+                      <option value="medical_supervisor">Medical Supervisor</option>
+                      <option value="customer_support">Customer Support</option>
+                      <option value="rider_manager">Rider Manager</option>
                     </select>
                   </div>
                   <div className="form-group">
@@ -1135,9 +1381,10 @@ const OrderManagement = () => {
                     <select className="form-input" required>
                       <option value="">Select Permissions</option>
                       <option value="full">Full Access</option>
+                      <option value="pharmacy">Pharmacy Management</option>
+                      <option value="prescription">Prescription Verification</option>
                       <option value="orders">Order Management Only</option>
                       <option value="finance">Finance Only</option>
-                      <option value="support">Customer Support Only</option>
                     </select>
                   </div>
                 </div>
@@ -1152,26 +1399,30 @@ const OrderManagement = () => {
           </div>
         );
 
-      case 'addVendor':
+      case 'addPharmacy':
         return (
-          <div className="new-vendor-modal">
+          <div className="new-pharmacy-modal">
             <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-              <HiPlus /> Add New Vendor
+              <HiPlus /> Add New Pharmacy
             </h3>
             
             <form onSubmit={(e) => {
               e.preventDefault();
-              showNotification('Vendor added successfully', 'success');
+              showNotification('Pharmacy added successfully', 'success');
               closeModal();
             }}>
               <div className="form-grid">
                 <div className="form-group">
-                  <label>Vendor Name</label>
-                  <input type="text" className="form-input" placeholder="Enter vendor name" required />
+                  <label>Pharmacy Name</label>
+                  <input type="text" className="form-input" placeholder="Enter pharmacy name" required />
                 </div>
                 <div className="form-group">
-                  <label>Contact Person</label>
-                  <input type="text" className="form-input" placeholder="Enter contact person name" required />
+                  <label>Owner Name</label>
+                  <input type="text" className="form-input" placeholder="Enter owner name" required />
+                </div>
+                <div className="form-group">
+                  <label>License Number</label>
+                  <input type="text" className="form-input" placeholder="Enter pharmacy license number" required />
                 </div>
                 <div className="form-group">
                   <label>Phone Number</label>
@@ -1182,16 +1433,8 @@ const OrderManagement = () => {
                   <input type="email" className="form-input" placeholder="Enter email address" required />
                 </div>
                 <div className="form-group">
-                  <label>Business Type</label>
-                  <select className="form-input" required>
-                    <option value="">Select Business Type</option>
-                    <option value="restaurant">Restaurant</option>
-                    <option value="grocery">Grocery Store</option>
-                    <option value="pharmacy">Pharmacy</option>
-                    <option value="electronics">Electronics</option>
-                    <option value="fashion">Fashion</option>
-                    <option value="other">Other</option>
-                  </select>
+                  <label>Pharmacist Name</label>
+                  <input type="text" className="form-input" placeholder="Enter licensed pharmacist name" required />
                 </div>
                 <div className="form-group">
                   <label>Commission Rate (%)</label>
@@ -1199,18 +1442,18 @@ const OrderManagement = () => {
                 </div>
                 <div className="form-group">
                   <label>Address</label>
-                  <textarea className="form-input" placeholder="Enter business address" rows="3" required></textarea>
+                  <textarea className="form-input" placeholder="Enter pharmacy address" rows="3" required></textarea>
                 </div>
                 <div className="form-group">
-                  <label>Description</label>
-                  <textarea className="form-input" placeholder="Enter business description" rows="3"></textarea>
+                  <label>Specialties</label>
+                  <textarea className="form-input" placeholder="Enter specialties (e.g., Diabetes care, Pediatrics, etc.)" rows="3"></textarea>
                 </div>
               </div>
               
               <div className="form-actions">
                 <button type="button" className="btn btn-outline" onClick={closeModal}>Cancel</button>
                 <button type="submit" className="btn btn-primary">
-                  <HiPlus /> Add Vendor
+                  <HiPlus /> Add Pharmacy
                 </button>
               </div>
             </form>
@@ -1253,19 +1496,19 @@ const OrderManagement = () => {
                   <input type="checkbox" defaultChecked /> Order Details
                 </label>
                 <label>
-                  <input type="checkbox" defaultChecked /> Customer Information
+                  <input type="checkbox" defaultChecked /> Patient Information
                 </label>
                 <label>
-                  <input type="checkbox" defaultChecked /> Vendor Information
+                  <input type="checkbox" defaultChecked /> Pharmacy Information
                 </label>
                 <label>
-                  <input type="checkbox" defaultChecked /> Payment Details
+                  <input type="checkbox" defaultChecked /> Prescription Details
                 </label>
                 <label>
-                  <input type="checkbox" /> Analytics
+                  <input type="checkbox" defaultChecked /> Medicine Details
                 </label>
                 <label>
-                  <input type="checkbox" /> Performance Metrics
+                  <input type="checkbox" /> Medical Analytics
                 </label>
               </div>
             </div>
@@ -1286,7 +1529,7 @@ const OrderManagement = () => {
         return (
           <div className="modal-call">
             <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-              <HiPhoneOutgoing /> Contact Customer
+              <HiPhoneOutgoing /> Contact Patient
             </h3>
             
             <div className="call-simulator">
@@ -1295,8 +1538,12 @@ const OrderManagement = () => {
                   <HiUser />
                   <span>{modalData?.customer.name}</span>
                 </div>
-                <p className="text-center text-soft mb-4">Calling customer at:</p>
+                <p className="text-center text-soft mb-4">Calling patient at:</p>
                 <p className="phone-number">{modalData?.customer.phone}</p>
+                <div className="patient-notes mt-4">
+                  <p className="text-sm">Medical Notes:</p>
+                  <p className="text-sm">{modalData?.customer.medicalConditions}</p>
+                </div>
                 <p className="call-status text-center text-soft">Ringing...</p>
               </div>
             </div>
@@ -1304,7 +1551,7 @@ const OrderManagement = () => {
             <div className="modal-actions">
               <button className="btn btn-outline" onClick={closeModal}>Cancel</button>
               <button className="btn btn-success" onClick={() => {
-                showNotification(`Calling ${modalData?.customer.phone}`, 'success');
+                showNotification(`Calling patient ${modalData?.customer.name}`, 'success');
                 closeModal();
               }}>
                 <HiPhone /> Start Call
@@ -1313,11 +1560,11 @@ const OrderManagement = () => {
           </div>
         );
 
-      case 'contactVendor':
+      case 'contactPharmacy':
         return (
           <div className="modal-call">
             <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-              <HiPhoneOutgoing /> Contact Vendor
+              <HiPhoneOutgoing /> Contact Pharmacy
             </h3>
             
             <div className="call-simulator">
@@ -1326,8 +1573,11 @@ const OrderManagement = () => {
                   <HiShoppingBag />
                   <span>{modalData?.name}</span>
                 </div>
-                <p className="text-center text-soft mb-4">Calling vendor at:</p>
+                <p className="text-center text-soft mb-4">Calling pharmacy at:</p>
                 <p className="phone-number">+91 9876543222</p>
+                <div className="pharmacy-info mt-4">
+                  <p className="text-sm">License: {modalData?.license || 'PH123456789'}</p>
+                </div>
                 <p className="call-status text-center text-soft">Ringing...</p>
               </div>
             </div>
@@ -1335,7 +1585,7 @@ const OrderManagement = () => {
             <div className="modal-actions">
               <button className="btn btn-outline" onClick={closeModal}>Cancel</button>
               <button className="btn btn-success" onClick={() => {
-                showNotification(`Calling vendor ${modalData?.name}`, 'success');
+                showNotification(`Calling pharmacy ${modalData?.name}`, 'success');
                 closeModal();
               }}>
                 <HiPhone /> Start Call
@@ -1359,6 +1609,10 @@ const OrderManagement = () => {
                 </div>
                 <p className="text-center text-soft mb-4">Calling rider at:</p>
                 <p className="phone-number">{modalData?.rider?.phone}</p>
+                <div className="delivery-info mt-4">
+                  <p className="text-sm">Current Order: {modalData?.id}</p>
+                  <p className="text-sm">Priority: {modalData?.priority}</p>
+                </div>
                 <p className="call-status text-center text-soft">Ringing...</p>
               </div>
             </div>
@@ -1380,16 +1634,30 @@ const OrderManagement = () => {
     }
   };
 
+  // Helper function for medicine type styling
+  const getMedicineTypeClass = (type) => {
+    const typeClasses = {
+      'Tablet': 'bg-blue-100 text-blue-800',
+      'Inhaler': 'bg-green-100 text-green-800',
+      'Medical Device': 'bg-purple-100 text-purple-800',
+      'Diagnostic': 'bg-yellow-100 text-yellow-800',
+      'Supplement': 'bg-orange-100 text-orange-800',
+      'Ayurvedic': 'bg-teal-100 text-teal-800',
+      'Personal Care': 'bg-pink-100 text-pink-800'
+    };
+    return typeClasses[type] || 'bg-gray-100 text-gray-800';
+  };
+
   // Get modal title
   const getModalTitle = (type) => {
     const titles = {
-      orderDetails: 'Order Details',
-      vendorDetails: 'Vendor Details',
+      orderDetails: 'Medicine Order Details',
+      pharmacyDetails: 'Pharmacy Details',
       usersManagement: 'Users Management',
-      addVendor: 'Add New Vendor',
+      addPharmacy: 'Add New Pharmacy',
       exportOrders: 'Export Orders',
-      contactCustomer: 'Contact Customer',
-      contactVendor: 'Contact Vendor',
+      contactCustomer: 'Contact Patient',
+      contactPharmacy: 'Contact Pharmacy',
       contactRider: 'Contact Rider'
     };
     return titles[type] || 'Modal';
@@ -1397,7 +1665,7 @@ const OrderManagement = () => {
 
   // Get modal size
   const getModalSize = (type) => {
-    if (['orderDetails', 'vendorDetails', 'usersManagement', 'addVendor'].includes(type)) {
+    if (['orderDetails', 'pharmacyDetails', 'usersManagement', 'addPharmacy'].includes(type)) {
       return 'extra-large';
     }
     return 'large';
@@ -1409,8 +1677,8 @@ const OrderManagement = () => {
       <div className="page-header">
         <div className="header-content">
           <div className="header-title">
-            <h1>Order Management System</h1>
-            <p>Monitor and manage all orders in real-time. Track deliveries, handle issues, and analyze performance.</p>
+            <h1><HiHeart /> Medicine Delivery Management</h1>
+            <p>Monitor and manage all medicine orders in real-time. Track deliveries, handle prescription verification, and ensure timely delivery.</p>
             <div className="real-time-indicator">
               <span className="live-dot"></span>
               <span>Live Updates</span>
@@ -1421,8 +1689,8 @@ const OrderManagement = () => {
             </div>
           </div>
           <div className="header-actions-row">
-            <button className="btn btn-outline" onClick={handleAddVendor}>
-              <HiPlus /> Add New Vendor
+            <button className="btn btn-outline" onClick={handleAddPharmacy}>
+              <HiPlus /> Add New Pharmacy
             </button>
             <button className="btn btn-outline" onClick={handleManageUsers}>
               <HiUserGroup /> Manage Users
@@ -1440,7 +1708,7 @@ const OrderManagement = () => {
       {/* Real-time Stats */}
       <div className="real-time-stats">
         <div className="stats-header">
-          <h3><HiChartBar /> Real-time Order Statistics</h3>
+          <h3><HiChartBar /> Real-time Medicine Order Statistics</h3>
           <span className="last-updated">
             Last updated: {lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </span>
@@ -1456,7 +1724,7 @@ const OrderManagement = () => {
           />
           <StatCard 
             icon={HiClock}
-            title="Pending Orders"
+            title="Pending Verification"
             value={realTimeStats.pendingOrders}
             change={-3.5}
             color="warning"
@@ -1495,7 +1763,7 @@ const OrderManagement = () => {
             iconColor="#06b6d4"
           />
           <StatCard 
-            icon={HiCurrencyRupee}
+            icon={HiReceiptRefund}
             title="Pending Refunds"
             value={realTimeStats.pendingRefunds}
             change={2.1}
@@ -1503,7 +1771,7 @@ const OrderManagement = () => {
             iconColor="#f59e0b"
           />
           <StatCard 
-            icon={HiExclamationCircle}
+            icon={HiShieldExclamation}
             title="Critical Alerts"
             value={realTimeStats.criticalAlerts}
             change={-25.0}
@@ -1528,6 +1796,18 @@ const OrderManagement = () => {
           <HiClock /> Pending ({orders.filter(o => o.status === 'pending').length})
         </button>
         <button 
+          className={`tab-btn ${activeTab === 'verification' ? 'active' : ''}`}
+          onClick={() => { setActiveTab('verification'); setSelectedStatus('verification'); }}
+        >
+          <HiDocumentText /> Verification ({orders.filter(o => o.status === 'verification').length})
+        </button>
+        <button 
+          className={`tab-btn ${activeTab === 'processing' ? 'active' : ''}`}
+          onClick={() => { setActiveTab('processing'); setSelectedStatus('processing'); }}
+        >
+          <HiBeaker /> Processing ({orders.filter(o => o.status === 'processing').length})
+        </button>
+        <button 
           className={`tab-btn ${activeTab === 'in_transit' ? 'active' : ''}`}
           onClick={() => { setActiveTab('in_transit'); setSelectedStatus('in_transit'); }}
         >
@@ -1549,7 +1829,7 @@ const OrderManagement = () => {
           className={`tab-btn ${activeTab === 'critical' ? 'active' : ''}`}
           onClick={() => { setActiveTab('critical'); setSelectedPriority('critical'); }}
         >
-          <HiExclamationCircle /> Critical ({orders.filter(o => o.priority === 'critical').length})
+          <HiShieldExclamation /> Critical ({orders.filter(o => o.priority === 'critical').length})
         </button>
       </div>
 
@@ -1561,7 +1841,7 @@ const OrderManagement = () => {
               <input
                 type="text"
                 className="search-bar"
-                placeholder="Search orders by ID, customer, or vendor..."
+                placeholder="Search orders by ID, patient, or pharmacy..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -1597,6 +1877,8 @@ const OrderManagement = () => {
           >
             <option value="all">All Status</option>
             <option value="pending">Pending</option>
+            <option value="verification">Verification</option>
+            <option value="processing">Processing</option>
             <option value="in_transit">In Transit</option>
             <option value="delivered">Delivered</option>
             <option value="cancelled">Cancelled</option>
@@ -1622,11 +1904,14 @@ const OrderManagement = () => {
       {/* Main Content */}
       <div className="card">
         <div className="order-timeline-header">
-          <h4>Order Status Timeline</h4>
+          <h4>Medicine Order Status Timeline</h4>
           <div className="timeline-stages">
             <span className="stage active">Order Placed</span>
-            <span className={`stage ${getFilteredOrders().some(o => ['preparing', 'in_transit', 'delivered'].includes(o.status)) ? 'active' : ''}`}>
-              Preparing
+            <span className={`stage ${getFilteredOrders().some(o => ['verification', 'processing', 'in_transit', 'delivered'].includes(o.status)) ? 'active' : ''}`}>
+              Prescription Verification
+            </span>
+            <span className={`stage ${getFilteredOrders().some(o => ['processing', 'in_transit', 'delivered'].includes(o.status)) ? 'active' : ''}`}>
+              Pharmacy Processing
             </span>
             <span className={`stage ${getFilteredOrders().some(o => ['in_transit', 'delivered'].includes(o.status)) ? 'active' : ''}`}>
               In Transit
@@ -1643,8 +1928,8 @@ const OrderManagement = () => {
             data={getFilteredOrders()}
             emptyMessage={
               <div className="table-empty-state">
-                <HiClipboardList />
-                <h4>No orders found</h4>
+                <HiHeart />
+                <h4>No medicine orders found</h4>
                 <p>Try adjusting your search or filter criteria</p>
               </div>
             }
@@ -1654,7 +1939,7 @@ const OrderManagement = () => {
 
       {/* High Priority Alerts */}
       <div className="card high-risk-alerts">
-        <h3><HiExclamationCircle /> High Priority Alerts</h3>
+        <h3><HiShieldExclamation /> Medical Priority Alerts</h3>
         {alerts.length > 0 ? (
           <div className="alerts-list">
             {alerts.map(alert => (
@@ -1664,18 +1949,18 @@ const OrderManagement = () => {
         ) : (
           <div className="empty-state">
             <HiCheckCircle />
-            <h4>No active alerts</h4>
+            <h4>No active medical alerts</h4>
             <p>All systems are operating normally</p>
           </div>
         )}
       </div>
 
-      {/* Vendor Quick Stats */}
-      <div className="card vendor-quick-stats">
-        <h3><HiShoppingBag /> Vendor Performance Today</h3>
-        <div className="vendor-stats-grid">
-          {vendorStats.map(vendor => (
-            <VendorStatCard key={vendor.id} vendor={vendor} />
+      {/* Pharmacy Quick Stats */}
+      <div className="card pharmacy-quick-stats">
+        <h3><HiShoppingBag /> Pharmacy Performance Today</h3>
+        <div className="pharmacy-stats-grid">
+          {pharmacyStats.map(pharmacy => (
+            <PharmacyStatCard key={pharmacy.id} pharmacy={pharmacy} />
           ))}
         </div>
       </div>

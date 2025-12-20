@@ -171,7 +171,7 @@ const Sidebar = ({ collapsed, onToggleCollapse }) => {
             {!collapsed && (
               <div className="user-details">
                 <p className="user-name">{user?.name || 'User'}</p>
-                <p className="user-role">{getRoleName() || 'Admin'}</p>
+                
               </div>
             )}
           </div>
